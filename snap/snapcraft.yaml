@@ -5,7 +5,7 @@ description: |
   XJS Provides a way to parse complex juju status yaml/json files in a simple
   way.
 
-confinement: classic
+confinement: strict
 
 parts:
   dependencies:
@@ -21,4 +21,6 @@ parts:
 apps:
   xjs:
     command: xjs
+    plugs:
+     - home
 
