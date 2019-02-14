@@ -1,5 +1,7 @@
 # XJS
 
+[![Snap Status](https://build.snapcraft.io/badge/nniehoff/xjs.svg)](https://build.snapcraft.io/user/nniehoff/xjs)
+
 This is a tool for parsing seemingly complex juju status yaml/json files.  It
 is currently still in early alpha stages of development.
 
