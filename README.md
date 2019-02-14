@@ -33,3 +33,4 @@ TODO: There are other options that are not documented
 11.  Add json support
 12.  Enforce pycodestyle checks
 13.  Update Usage statement
+13.  Fix Colors
