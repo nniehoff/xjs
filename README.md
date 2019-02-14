@@ -21,16 +21,18 @@ TODO: There are other options that are not documented
 ## TODO
 
 1.  Comment Code
-2.  make a map of your colors, and treat that as a class, vs. your structure on 105 and 128
-3.  Look into click for arg parsing
-4.  Use black
-5.  Add interfaces table
-6.  Add sosreport handling
-7.  Add sorting
-8.  Date Verification
-9.  Make Snap
-10.  Test with v1 code
-11.  Add json support
-12.  Enforce pycodestyle checks
-13.  Update Usage statement
-13.  Fix Colors
+1.  make a map of your colors, and treat that as a class, vs. your structure on 105 and 128
+1.  Look into click for arg parsing
+1.  Use black
+1.  Add interfaces table
+1.  Add sosreport handling
+1.  Add sorting
+1.  Date Verification
+1.  Make Snap
+1.  Test with v1 code
+1.  Add json support
+1.  Enforce pycodestyle checks
+1.  Update Usage statement
+1.  Fix Colors
+1.  Add support for multiple models
+

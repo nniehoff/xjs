@@ -1,0 +1,24 @@
+name: xjs
+version: 'git'
+summary: A tool to parse juju status yaml/json
+description: |
+  XJS Provides a way to parse complex juju status yaml/json files in a simple
+  way.
+
+confinement: classic
+
+parts:
+  dependencies:
+    plugin: python
+    python-version: python3
+    python-packages:
+      - pyyaml
+      - prettytable
+  xjs:
+    source: .
+    plugin: dump
+
+apps:
+  xjs:
+    command: xjs
+
