@@ -84,7 +84,7 @@ def color_application_info():
 
         # Charm Revision
         if "can-upgrade-to" in appinfo:
-            match = re.match(r'\D+(\d+)$', appinfo["can-upgrade-to"])
+            match = re.match(r"\D+(\d+)$", appinfo["can-upgrade-to"])
             currentversion = match.group(1)
             if match:
                 if currentversion == appinfo["version"]:
@@ -411,7 +411,7 @@ def process_machine_info():
             machinfo[key] = value
 
 
-def color_machine_info():
+def color_machine_info(include_containers):
     global juju_status
 
     for machname, machinfo in juju_status["machines"].items():
@@ -423,9 +423,24 @@ def color_machine_info():
             machinfo["juju-status"]["current_color"] = COLOR_ORANGE
         else:
             machinfo["juju-status"]["current_color"] = COLOR_YELLOW
+        if "containers" in machinfo and include_containers:
+            for lxcname, lxcinfo in machinfo["containers"].items():
+                if lxcinfo["juju-status"]["current"] == "started":
+                    lxcinfo["juju-status"]["current_color"] = COLOR_GREEN
+                elif lxcinfo["juju-status"]["current"] in ("error", "down"):
+                    lxcinfo["juju-status"]["current_color"] = COLOR_RED
+                elif lxcinfo["juju-status"]["current"] == "pending":
+                    lxcinfo["juju-status"]["current_color"] = COLOR_ORANGE
+                else:
+                    lxcinfo["juju-status"]["current_color"] = COLOR_YELLOW
+
+                if lxcinfo["machine-status"]["message"] == "Container started":
+                    lxcinfo["machine-status"]["message_color"] = COLOR_GREEN
+                else:
+                    lxcinfo["machine-status"]["message_color"] = COLOR_YELLOW
 
 
-def print_machine_info():
+def print_machine_info(include_containers):
     table = PrettyTable()
     table.set_style(12)
     table.field_names = [
@@ -469,6 +484,28 @@ def print_machine_info():
             row.append("")
         row.append(machinfo["machine-status"]["message"])
         table.add_row(row)
+        if "containers" in machinfo and include_containers:
+            for lxcname, lxcinfo in machinfo["containers"].items():
+                row = []
+                row.append(lxcname)
+                row.append(
+                    lxcinfo["juju-status"]["current_color"]
+                    + lxcinfo["juju-status"]["current"]
+                    + COLOR_RESET
+                )
+                row.append(lxcinfo["dns-name"])
+                row.append(lxcinfo["instance-id"])
+                row.append(lxcinfo["series"])
+                row.append("")
+                row.append("")
+                row.append("")
+                row.append("")
+                row.append(
+                    lxcinfo["machine-status"]["message_color"]
+                    + lxcinfo["machine-status"]["message"]
+                    + COLOR_RESET
+                )
+                table.add_row(row)
     table.align = "l"
     print(table)
 
@@ -477,25 +514,77 @@ def process_network_info():
     global juju_status
 
 
-def color_network_info():
+def color_network_info(include_containers):
     global juju_status
 
+    for machname, machinfo in juju_status["machines"].items():
+        for nic, nicinfo in machinfo["network-interfaces"].items():
+            if nicinfo["is-up"]:
+                nicinfo["is-up_color"] = COLOR_GREEN
+            else:
+                nicinfo["is-up_color"] = COLOR_RED
+        if "containers" in machinfo and include_containers:
+            for lxcname, lxcinfo in machinfo["containers"].items():
+                for nic, nicinfo in lxcinfo["network-interfaces"].items():
+                    if nicinfo["is-up"]:
+                        nicinfo["is-up_color"] = COLOR_GREEN
+                    else:
+                        nicinfo["is-up_color"] = COLOR_RED
 
-def print_network_info():
+
+def print_network_info(include_containers):
     table = PrettyTable()
     table.set_style(12)
     table.field_names = [
         "Machine",
-        "State",
-        "DNS",
-        "Inst id",
-        "Series",
-        "AZ",
-        "Arch",
-        "Cores",
-        "Memory",
-        "Message",
+        "Interface",
+        "IP",
+        "MAC",
+        "Gateway",
+        "Space",
+        "Up",
     ]
+    for machname, machinfo in juju_status["machines"].items():
+        for nic, nicinfo in machinfo["network-interfaces"].items():
+            row = []
+            row.append(machname)
+            row.append(nic)
+            row.append(",".join(nicinfo["ip-addresses"]))
+            row.append(nicinfo["mac-address"])
+            if "gateway" in nicinfo:
+                row.append(nicinfo["gateway"])
+            else:
+                row.append("")
+            if "space" in nicinfo:
+                row.append(nicinfo["space"])
+            else:
+                row.append("")
+            row.append(
+                nicinfo["is-up_color"] + str(nicinfo["is-up"]) + COLOR_RESET
+            )
+            table.add_row(row)
+        if "containers" in machinfo and include_containers:
+            for lxcname, lxcinfo in machinfo["containers"].items():
+                for nic, nicinfo in lxcinfo["network-interfaces"].items():
+                    row = []
+                    row.append(lxcname)
+                    row.append(nic)
+                    row.append(",".join(nicinfo["ip-addresses"]))
+                    row.append(nicinfo["mac-address"])
+                    if "gateway" in nicinfo:
+                        row.append(nicinfo["gateway"])
+                    else:
+                        row.append("")
+                    if "space" in nicinfo:
+                        row.append(nicinfo["space"])
+                    else:
+                        row.append("")
+                    row.append(
+                        nicinfo["is-up_color"]
+                        + str(nicinfo["is-up"])
+                        + COLOR_RESET
+                    )
+                    table.add_row(row)
     table.align = "l"
     print(table)
 
@@ -550,6 +639,13 @@ def print_network_info():
     is_flag=True,
     help="Show model information",
 )
+@click.option(
+    "--include-containers",
+    "-c",
+    default=False,
+    is_flag=True,
+    help="Include Container information",
+)
 @click.argument("statusfile", required=True, type=click.File("r"))
 def main(
     statusfile,
@@ -560,6 +656,7 @@ def main(
     show_machines,
     show_net,
     show_model,
+    include_containers,
 ):
     """
     xjs parses a juju status yaml/json and displays the information
@@ -576,12 +673,14 @@ def main(
         and not show_machines
         and not show_net
         and not show_model
+        and not include_containers
     ):
         show_apps = True
         show_units = True
         show_machines = True
         show_net = True
         show_model = True
+        include_containers = True
 
     if show_model:
         color_model_info()
@@ -599,13 +698,13 @@ def main(
         print("")
     if show_machines:
         process_machine_info()
-        color_machine_info()
-        print_machine_info()
+        color_machine_info(include_containers)
+        print_machine_info(include_containers)
         print("")
     if show_net:
         process_network_info()
-        color_network_info()
-        print_network_info()
+        color_network_info(include_containers)
+        print_network_info(include_containers)
         print("")
 
 
