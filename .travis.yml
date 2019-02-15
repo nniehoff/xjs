@@ -1,0 +1,15 @@
+language: python
+python:
+  - "3.6"
+  - "3.7-dev"
+  - "nightly"
+matrix:
+  allow_failures:
+    - python: "nightly"
+dist: bionic
+sudo: true
+install:
+  - "pip install pyyaml prettytable flake8"
+script:
+  - "pycodestyle xjs"
+  - "flake8 xjs"
