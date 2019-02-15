@@ -25,4 +25,8 @@ apps:
     command: xjs
     plugs:
      - home
+    environment:
+      LC_ALL: C.UTF-8
+      LANG: C.UTF-8
+
 
