@@ -5,8 +5,6 @@ import json
 import re
 import sys
 import yaml
-from datetime import datetime
-from datetime import timedelta
 from prettytable import PrettyTable
 
 
@@ -419,7 +417,7 @@ def color_machine_info():
     for machname, machinfo in juju_status["machines"].items():
         if machinfo["juju-status"]["current"] == "started":
             machinfo["juju-status"]["current_color"] = COLOR_GREEN
-        elif machinfo["juju-status"]["current"] in ("error", down):
+        elif machinfo["juju-status"]["current"] in ("error", "down"):
             machinfo["juju-status"]["current_color"] = COLOR_RED
         elif machinfo["juju-status"]["current"] == "pending":
             machinfo["juju-status"]["current_color"] = COLOR_ORANGE
