@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import sys
 import getopt
@@ -524,12 +524,13 @@ def print_usage():
     print("")
     print("-a Show only application info")
     print("-h show this message")
-    print("-j inputfile json status file")
+    print("-j|--json inputfile json status file")
     print("-m Show only machine info")
+    print("--model Show only model info")
     print("-n Show only network info")
     print("-s Hide Subordinate Units")
     print("-u Show only unit info")
-    print("-y inputfile yaml status file")
+    print("-y|--yaml inputfile yaml status file")
     print("-z Hide Applications with 0 units")
 
 
