@@ -3,6 +3,7 @@
 import sys
 import getopt
 import yaml
+import json
 import re
 from datetime import datetime
 from datetime import timedelta
@@ -25,6 +26,13 @@ def load_yaml(inputfile):
 
     filecontents = open(inputfile, "r")
     juju_status = yaml.load(filecontents)
+
+
+def load_json(inputfile):
+    global juju_status
+
+    filecontents = open(inputfile, "r")
+    juju_status = json.load(filecontents)
 
 
 def find_dates(search_dict, field):
@@ -78,7 +86,10 @@ def process_status():
         + str(max_date)
         + COLOR_RESET
     )
-    if "controller" in juju_status and "timestamp" in juju_status["controller"]:
+    if (
+        "controller" in juju_status
+        and "timestamp" in juju_status["controller"]
+    ):
         juju_date = datetime.strptime(
             max_date.strftime("%d %b %Y")
             + " "
@@ -210,11 +221,16 @@ def print_model_info():
             )
         else:
             row.append(juju_status["model"][column])
-    if "controller" in juju_status and "timestamp" in juju_status["controller"]:
+    if (
+        "controller" in juju_status
+        and "timestamp" in juju_status["controller"]
+    ):
         row.append(juju_status["controller"]["timestamp"])
     else:
         print(
-            COLOR_YELLOW + "WARNING: Guessing at the controller timestamp" + COLOR_RESET
+            COLOR_YELLOW
+            + "WARNING: Guessing at the controller timestamp"
+            + COLOR_RESET
         )
         row.append(juju_status["model"]["model-status"]["since"])
     if "current_color" in juju_status["model"]["model-status"]:
@@ -310,7 +326,10 @@ def color_unit_info():
                         # Workload Status
                         if workload_status["current"] == "active":
                             workload_status["current_color"] = COLOR_GREEN
-                        elif workload_status["current"] in ("error", "blocked"):
+                        elif workload_status["current"] in (
+                            "error",
+                            "blocked",
+                        ):
                             workload_status["current_color"] = COLOR_RED
                         elif workload_status["current"] == "waiting":
                             workload_status["current_color"] = COLOR_RESET
@@ -387,7 +406,9 @@ def print_unit_info(hide_subondinate_units=False):
                         workload_status = subunitinfo["workload-status"]
                         subjuju_status = subunitinfo["juju-status"]
                         if "leader" in subunitinfo and subunitinfo["leader"]:
-                            row.append("  " + default_color + subunitname + "*")
+                            row.append(
+                                "  " + default_color + subunitname + "*"
+                            )
                         else:
                             row.append("  " + default_color + subunitname)
                         row.append(
@@ -405,7 +426,9 @@ def print_unit_info(hide_subondinate_units=False):
                         row.append("")
                         row.append(workload_status["message"])
                         if "row_color" in subunitinfo:
-                            row.append(", ".join(subunitinfo["notes"]) + COLOR_RESET)
+                            row.append(
+                                ", ".join(subunitinfo["notes"]) + COLOR_RESET
+                            )
                         else:
                             row.append(", ".join(subunitinfo["notes"]))
                         table.add_row(row)
@@ -494,6 +517,22 @@ def color_machine_info():
             machinfo["juju-status"]["current_color"] = COLOR_YELLOW
 
 
+def print_usage():
+    print(
+        "xjs [-a] [-m] [-n] [-s] [-z] (-y <inputfile.yaml>|-j <inputfile.json>"
+    )
+    print("")
+    print("-a Show only application info")
+    print("-h show this message")
+    print("-j inputfile json status file")
+    print("-m Show only machine info")
+    print("-n Show only network info")
+    print("-s Hide Subordinate Units")
+    print("-u Show only unit info")
+    print("-y inputfile yaml status file")
+    print("-z Hide Applications with 0 units")
+
+
 def print_machine_info():
     table = PrettyTable()
     table.set_style(12)
@@ -579,23 +618,26 @@ def main(argv):
     show_machine_info = True
     show_network_info = True
     try:
-        opts, args = getopt.getopt(argv, "namuszhi:", ["ifile=", "model"])
+        opts, args = getopt.getopt(
+            argv, "namuszhy:j:", ["yaml=", "model", "json="]
+        )
     except getopt.GetoptError:
-        print("xjs.py [-z] [-s] -i <inputfile.yaml>")
-        print("")
-        print("-z Hide Applications with 0 units")
-        print("-s Hide Subordinate Units")
+        print_usage()
         sys.exit(2)
     for opt, arg in opts:
         if opt == "-h":
-            print("xjs.py -i <inputfile.yaml>")
+            print_usage()
             sys.exit()
         elif opt == "-z":
             hide_scale_zero = True
         elif opt == "-s":
             hide_subondinate_units = True
-        elif opt in ("-i", "--ifile"):
+        elif opt in ("-y", "--yaml"):
             inputfile = arg
+            load_yaml(inputfile)
+        elif opt in ("-j", "--json"):
+            inputfile = arg
+            load_json(inputfile)
         elif opt in ("-a", "-m", "-u", "--model", "-n"):
             if (
                 show_app_info
@@ -619,7 +661,6 @@ def main(argv):
                 show_model_info = True
             elif opt == "-n":
                 show_network_info = True
-    load_yaml(inputfile)
     process_status()
     if show_model_info:
         color_model_info()
