@@ -15,6 +15,7 @@ parts:
     python-packages:
       - pyyaml
       - prettytable
+      - click
   xjs:
     source: .
     plugin: dump
