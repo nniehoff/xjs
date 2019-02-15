@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import sys
-import getopt
-import yaml
+import click
 import json
 import re
+import sys
+import yaml
 from datetime import datetime
 from datetime import timedelta
 from prettytable import PrettyTable
@@ -18,86 +18,19 @@ COLOR_YELLOW = "\033[33m"
 UPDATE_THRESHOLD = 300
 
 juju_status = {}
-juju_date = datetime.now()
 
 
-def load_yaml(inputfile):
+def load_file(inputfile):
     global juju_status
 
-    filecontents = open(inputfile, "r")
-    juju_status = yaml.load(filecontents)
-
-
-def load_json(inputfile):
-    global juju_status
-
-    filecontents = open(inputfile, "r")
-    juju_status = json.load(filecontents)
-
-
-def find_dates(search_dict, field):
-    """
-    Takes a dict with nested lists and dicts,
-    and searches all dicts for a key of the field
-    provided.
-    """
-    fields_found = []
-
-    for key, value in search_dict.items():
-        if key == field:
-            fields_found.append(value)
-
-        elif isinstance(value, dict):
-            results = find_dates(value, field)
-            for result in results:
-                fields_found.append(result)
-
-        elif isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict):
-                    more_results = find_dates(item, field)
-                    for another_result in more_results:
-                        fields_found.append(another_result)
-
-    return fields_found
-
-
-def get_max_date(date_list):
-    max_date = datetime.now() - timedelta(days=36500)
-
-    for date in date_list:
-        testdate = datetime.strptime(date, "%d %b %Y %H:%M:%SZ")
-        if testdate > max_date:
-            max_date = testdate
-
-    return max_date
-
-
-def process_status():
-    global juju_date
-    all_dates = []
-
-    all_dates = find_dates(juju_status, "since")
-    max_date = get_max_date(all_dates)
-
-    print(
-        COLOR_YELLOW
-        + "WARNING: Guessing time of run to be "
-        + str(max_date)
-        + COLOR_RESET
-    )
-    if (
-        "controller" in juju_status
-        and "timestamp" in juju_status["controller"]
-    ):
-        juju_date = datetime.strptime(
-            max_date.strftime("%d %b %Y")
-            + " "
-            + juju_status["controller"]["timestamp"],
-            "%d %b %Y %H:%M:%SZ",
-        )
-    else:
-        juju_date = max_date
+    try:
+        juju_status = json.loads(inputfile)
+    except Exception:
+        try:
+            juju_status = yaml.safe_load(inputfile)
+        except Exception:
+            print(COLOR_RED + "Error trying to load status file" + COLOR_RESET)
+            sys.exit(1)
 
 
 def color_model_info():
@@ -134,14 +67,6 @@ def color_application_info():
     global juju_status
 
     for appname, appinfo in juju_status["applications"].items():
-        # last_update = datetime.strptime(
-        #     appinfo['application-status']['since'], '%d %b %Y %H:%M:%SZ')
-        # timediff = juju_date - last_update
-        # if timediff.seconds > UPDATE_THRESHOLD:
-        #     appinfo['row_color'] = COLOR_ORANGE
-        #     appinfo['notes'].append('Last status update ' +
-        #                             str(timediff.seconds) + ' ago')
-
         # Application Status
         if appinfo["application-status"]["current"] == "active":
             color = COLOR_GREEN
@@ -280,13 +205,6 @@ def color_unit_info():
             for unitname, unitinfo in appinfo["units"].items():
                 workload_status = unitinfo["workload-status"]
                 unitjuju_status = unitinfo["juju-status"]
-                # last_update = get_max_date([workload_status['since'],
-                #                             unitjuju_status['since']])
-                # timediff = juju_date - last_update
-                # if timediff.seconds > UPDATE_THRESHOLD:
-                #     unitinfo['row_color'] = COLOR_ORANGE
-                #     unitinfo['notes'].append('Last status update ' +
-                #                              str(timediff.seconds) + ' ago')
 
                 # Workload Status
                 if workload_status["current"] == "active":
@@ -314,14 +232,6 @@ def color_unit_info():
                     for subunitname, subunitinfo in subordinates.items():
                         workload_status = subunitinfo["workload-status"]
                         subjuju_status = subunitinfo["juju-status"]
-                        # last_update = get_max_date([workload_status['since'],
-                        #                             subjuju_status['since']])
-                        # timediff = juju_date - last_update
-                        # if timediff.seconds > UPDATE_THRESHOLD:
-                        #     subunitinfo['row_color'] = COLOR_ORANGE
-                        #     subunitinfo['notes'].append('Last status update ' +
-                        #                                 str(timediff.seconds) +
-                        #                                 ' ago')
 
                         # Workload Status
                         if workload_status["current"] == "active":
@@ -347,7 +257,7 @@ def color_unit_info():
                             subjuju_status["current_color"] = COLOR_YELLOW
 
 
-def print_unit_info(hide_subondinate_units=False):
+def print_unit_info(hide_subordinate_units=False):
     table = PrettyTable()
     table.set_style(12)
     table.field_names = [
@@ -396,7 +306,7 @@ def print_unit_info(hide_subondinate_units=False):
                 else:
                     row.append(", ".join(unitinfo["notes"]))
                 table.add_row(row)
-                if "subordinates" in unitinfo and not hide_subondinate_units:
+                if "subordinates" in unitinfo and not hide_subordinate_units:
                     subordinates = unitinfo["subordinates"]
                     for subunitname, subunitinfo in subordinates.items():
                         row = []
@@ -517,23 +427,6 @@ def color_machine_info():
             machinfo["juju-status"]["current_color"] = COLOR_YELLOW
 
 
-def print_usage():
-    print(
-        "xjs [-a] [-m] [-n] [-s] [-z] (-y <inputfile.yaml>|-j <inputfile.json>"
-    )
-    print("")
-    print("-a Show only application info")
-    print("-h show this message")
-    print("-j|--json inputfile json status file")
-    print("-m Show only machine info")
-    print("--model Show only model info")
-    print("-n Show only network info")
-    print("-s Hide Subordinate Units")
-    print("-u Show only unit info")
-    print("-y|--yaml inputfile yaml status file")
-    print("-z Hide Applications with 0 units")
-
-
 def print_machine_info():
     table = PrettyTable()
     table.set_style(12)
@@ -609,80 +502,109 @@ def print_network_info():
     print(table)
 
 
-def main(argv):
-    inputfile = ""
-    hide_scale_zero = False
-    hide_subondinate_units = False
-    show_model_info = True
-    show_app_info = True
-    show_unit_info = True
-    show_machine_info = True
-    show_network_info = True
-    try:
-        opts, args = getopt.getopt(
-            argv, "namuszhy:j:", ["yaml=", "model", "json="]
-        )
-    except getopt.GetoptError:
-        print_usage()
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == "-h":
-            print_usage()
-            sys.exit()
-        elif opt == "-z":
-            hide_scale_zero = True
-        elif opt == "-s":
-            hide_subondinate_units = True
-        elif opt in ("-y", "--yaml"):
-            inputfile = arg
-            load_yaml(inputfile)
-        elif opt in ("-j", "--json"):
-            inputfile = arg
-            load_json(inputfile)
-        elif opt in ("-a", "-m", "-u", "--model", "-n"):
-            if (
-                show_app_info
-                and show_machine_info
-                and show_model_info
-                and show_unit_info
-                and show_network_info
-            ):
-                show_model_info = False
-                show_app_info = False
-                show_unit_info = False
-                show_machine_info = False
-                show_network_info = False
-            if opt == "-a":
-                show_app_info = True
-            elif opt == "-m":
-                show_machine_info = True
-            elif opt == "-u":
-                show_unit_info = True
-            elif opt == "--model":
-                show_model_info = True
-            elif opt == "-n":
-                show_network_info = True
-    process_status()
-    if show_model_info:
+@click.command()
+@click.option(
+    "--hide-scale-zero",
+    "-h",
+    default=False,
+    is_flag=True,
+    help="Hide applications with a scale of 0",
+)
+@click.option(
+    "--hide-subordinate-units",
+    "-s",
+    default=False,
+    is_flag=True,
+    help="Hide subordinate units",
+)
+@click.option(
+    "--show-apps",
+    "-a",
+    default=False,
+    is_flag=True,
+    help="Show application information",
+)
+@click.option(
+    "--show-units",
+    "-u",
+    default=False,
+    is_flag=True,
+    help="Show unit information",
+)
+@click.option(
+    "--show-machines",
+    "-m",
+    default=False,
+    is_flag=True,
+    help="Show machine information",
+)
+@click.option(
+    "--show-net",
+    "-n",
+    default=False,
+    is_flag=True,
+    help="Show network interface information",
+)
+@click.option(
+    "--show-model",
+    "-d",
+    default=False,
+    is_flag=True,
+    help="Show model information",
+)
+@click.argument("statusfile", required=True, type=click.File("r"))
+def main(
+    statusfile,
+    hide_scale_zero,
+    hide_subordinate_units,
+    show_apps,
+    show_units,
+    show_machines,
+    show_net,
+    show_model,
+):
+    """
+    xjs parses a juju status yaml/json and displays the information
+    in a user friendly form highlighting specific fields of specific
+    interest.
+    """
+
+    load_file(statusfile)
+
+    # If no particular field was specified, show them all
+    if (
+        not show_apps
+        and not show_units
+        and not show_machines
+        and not show_net
+        and not show_model
+    ):
+        show_apps = True
+        show_units = True
+        show_machines = True
+        show_net = True
+        show_model = True
+
+    if show_model:
         color_model_info()
         print_model_info()
         print("")
-    if show_app_info:
+    if show_apps:
         process_application_info()
         color_application_info()
         print_application_info(hide_scale_zero)
         print("")
-    if show_unit_info:
+    if show_units:
         process_unit_info()
         color_unit_info()
-        print_unit_info(hide_subondinate_units)
+        print_unit_info(hide_subordinate_units)
         print("")
-    if show_machine_info:
+    if show_machines:
         process_machine_info()
         color_machine_info()
         print_machine_info()
         print("")
-    if show_network_info:
+    if show_net:
         process_network_info()
         color_network_info()
         print_network_info()
@@ -690,4 +612,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
