@@ -55,7 +55,7 @@ Options:
 1.  ~~Make Snap~~
 1.  Test with v1 code
 1.  ~~Add json support~~
-1.  Enforce pycodestyle checks
+1.  ~~Enforce pycodestyle checks~~
 1.  ~~Update Usage statement~~
 1.  Fix Colors
 1.  Add support for multiple models
