@@ -84,7 +84,7 @@ def color_application_info():
 
         # Charm Revision
         if "can-upgrade-to" in appinfo:
-            match = re.match("\D+(\d+)$", appinfo["can-upgrade-to"])
+            match = re.match(r'\D+(\d+)$', appinfo["can-upgrade-to"])
             currentversion = match.group(1)
             if match:
                 if currentversion == appinfo["version"]:
