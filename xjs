@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
-import click
+
 import json
 import re
 import sys
-import yaml
+import click
+from controller import Controller
+from model import Model
 from prettytable import PrettyTable
+import yaml
 
 
 COLOR_GREEN = "\033[32m"
@@ -16,6 +19,30 @@ COLOR_YELLOW = "\033[33m"
 UPDATE_THRESHOLD = 300
 
 juju_status = {}
+controllers = []
+models = []
+applications = []
+machines = []
+
+
+def load_status_file(inputfile):
+    rawstatus = {}
+
+    try:
+        rawstatus = json.loads(inputfile)
+    except Exception:
+        try:
+            rawstatus = yaml.safe_load(inputfile)
+        except Exception:
+            print(COLOR_RED + "Error trying to load status file" + COLOR_RESET)
+            sys.exit(1)
+
+    if "controller" in rawstatus:
+        controller = Controller(rawstatus["controller"])
+    else:
+        controller = Controller()
+    controllers.append(controller)
+    models.append(Model(rawstatus["model"], controller))
 
 
 def load_file(inputfile):
@@ -664,7 +691,9 @@ def main(
     interest.
     """
 
-    load_file(statusfile)
+    #load_file(statusfile)
+    load_status_file(statusfile)
+    sys.exit()
 
     # If no particular field was specified, show them all
     if (
