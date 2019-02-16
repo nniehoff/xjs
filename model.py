@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
+
 
 class Model:
     # TODO get latest juju version dynamically
@@ -9,6 +11,9 @@ class Model:
         self.notes = []
         self.applications = []
         self.machines = []
+        self.meterstatus = ""
+        self.message = ""
+
         self.name = modelinfo["name"]
         self.type = modelinfo["type"]
         self.controller = controller
@@ -16,14 +21,12 @@ class Model:
         self.cloud = modelinfo["cloud"]
         self.version = modelinfo["version"]
         self.modelstatus = modelinfo["model-status"]["current"]
-        # TODO Convert to datetime
-        self.since = modelinfo["model-status"]["since"]
+        self.since = datetime.strptime(
+            modelinfo["model-status"]["since"], "%d %b %Y %H:%M:%SZ"
+        )
         if "meter-status" in modelinfo:
             self.meterstatus = modelinfo["meter-status"]["color"]
             self.message = modelinfo["meter-status"]["message"]
-        else:
-            self.meterstatus = ""
-            self.message = ""
         self.sla = modelinfo["sla"]
 
     def add_application(self, application):
