@@ -4,10 +4,13 @@
 import json
 import re
 import sys
+from application import Application
 import click
 from controller import Controller
+from machine import Machine
 from model import Model
 from prettytable import PrettyTable
+from unit import Unit
 import yaml
 
 
@@ -23,6 +26,7 @@ controllers = []
 models = []
 applications = []
 machines = []
+units = []
 
 
 def load_status_file(inputfile):
@@ -42,7 +46,23 @@ def load_status_file(inputfile):
     else:
         controller = Controller()
     controllers.append(controller)
-    models.append(Model(rawstatus["model"], controller))
+    model = Model(rawstatus["model"], controller)
+    controller.add_model(model)
+    models.append(model)
+    for machname, machinfo in rawstatus["machines"].items():
+        machine = Machine(machname, machinfo, model)
+        machines.append(machine)
+        model.add_machine(machine)
+        # TODO Handle containers
+    for appname, appinfo in rawstatus["applications"].items():
+        application = Application(appname, appinfo, model)
+        applications.append(application)
+        model.add_application(application)
+        if "units" in appinfo:
+            for unitname, unitinfo in appinfo["units"].items():
+                unit = Unit(unitname, unitinfo, application)
+                application.add_unit(unit)
+                units.append(unit)
 
 
 def load_file(inputfile):
@@ -691,7 +711,7 @@ def main(
     interest.
     """
 
-    #load_file(statusfile)
+    # load_file(statusfile)
     load_status_file(statusfile)
     sys.exit()
 
