@@ -50,6 +50,9 @@ Options:
 1.  ~~Use black~~
 1.  ~~Add interfaces table~~
 1.  Add sosreport handling
+1.  Add sosreport organizing
+1.  Add sosreport fetching
+1.  Add sosreport generation
 1.  Add sorting
 1.  Date Verification
 1.  ~~Make Snap~~
