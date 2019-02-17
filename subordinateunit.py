@@ -1,34 +1,22 @@
 #!/usr/bin/env python3
 
-import re
 from basicunit import BasicUnit
-from subordinateunit import SubordinateUnit
 
 
-class Unit(BasicUnit):
-    def __init__(self, unitname, unitinfo, application):
+class SubordinateUnit(BasicUnit):
+    def __init__(self, subunitname, subunitinfo, unit):
         # Setup the BasicUnit
         BasicUnit.__init__(
-            self, unitname, unitinfo, application.model.controller
+            self, subunitname, subunitinfo, unit.application.model.controller
         )
 
         # Required Variables
-        self.application = application
-        if re.match(r"\d+\/lxd\/(\d+)$", unitinfo["machine"]):
-            self.machine = application.model.get_container(unitinfo["machine"])
-        else:
-            self.machine = application.model.get_machine(unitinfo["machine"])
-
-        # Handle Subordinate Charms if any
-        if "subordinates" in unitinfo:
-            for subunitname, subunitinfo in unitinfo["subordinates"].items():
-                self.subordinates.append(
-                    SubordinateUnit(subunitname, subunitinfo, self)
-                )
+        self.unit = unit
+        self.upgradingfrom = subunitinfo["upgrading-from"]
 
     def get_row(self, color):
         notesstr = ", ".join(self.notes)
-        namestr = self.name
+        namestr = "  " + self.name
         portsstr = ",".join(self.openports)
 
         if self.leader:
@@ -39,7 +27,7 @@ class Unit(BasicUnit):
                 namestr,
                 self.get_workloadstatus_color(),
                 self.get_jujustatus_color(),
-                self.machine.name,
+                "",
                 self.publicaddress,
                 portsstr,
                 self.message,
@@ -50,7 +38,7 @@ class Unit(BasicUnit):
                 namestr,
                 self.workloadstatus,
                 self.jujustatus,
-                self.machine.name,
+                "",
                 self.publicaddress,
                 portsstr,
                 self.message,
