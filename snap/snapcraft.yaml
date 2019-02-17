@@ -16,6 +16,7 @@ parts:
       - pyyaml
       - prettytable
       - click
+      - packaging
   xjs:
     source: .
     plugin: dump
