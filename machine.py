@@ -8,12 +8,14 @@ class Machine(BasicMachine):
     iscontainer = False
 
     def __init__(self, machinename, machineinfo, model):
+        """
+        Create a Machine object with basic information from a machine object
+        from a juju status output
+        """
         # Setup the BasicMachine
         BasicMachine.__init__(self, machinename, machineinfo, model.controller)
 
         # Default Values
-        # Todo Add Units to Machines
-        self.units = []
         self.containers = []
         self.constraints = ""
         self.hardware = {}
@@ -44,7 +46,9 @@ class Machine(BasicMachine):
                 model.add_container(container)
                 self.containers.append(container)
 
+    # TODO: Shouldn't handle color logic at this level
     def get_row(self, color):
+        """Return a list which can be used for a row in a table."""
         notesstr = ", ".join(self.notes)
 
         if color:

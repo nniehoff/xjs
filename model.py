@@ -22,6 +22,10 @@ class Model:
     ]
 
     def __init__(self, modelinfo, controller):
+        """
+        Create a Model object with basic information from a model object
+        from a juju status output
+        """
         # Default Values
         self.notes = []
         self.applications = []
@@ -56,15 +60,27 @@ class Model:
             self.notes.append("upgrade available: " + self.upgradeavailable)
 
     def add_application(self, application):
+        """Add an Application to this model"""
         self.applications.append(application)
 
     def add_machine(self, machine):
+        """Add a machine to this model"""
         self.machines.append(machine)
 
     def add_container(self, container):
+        """Add a container to this model"""
         self.containers.append(container)
 
+    def get_application(self, appname):
+        """Get an Application by name"""
+        for application in self.applications:
+            if application.name == appname:
+                return application
+        else:
+            return None
+
     def get_machine(self, machinename):
+        """Get a machine by name"""
         for machine in self.machines:
             if machine.name == machinename:
                 return machine
@@ -72,6 +88,7 @@ class Model:
             return None
 
     def get_container(self, containername):
+        """Get a container by name"""
         for container in self.containers:
             if container.name == containername:
                 return container
@@ -79,6 +96,7 @@ class Model:
             return None
 
     def get_version_color(self):
+        """Return a version string with correct colors based on version"""
         model_version = version.parse(self.version)
         if (
             model_version < version.parse("2.0.0")
@@ -92,12 +110,17 @@ class Model:
 
     # TODO Figure out all possible values of all options and color accordingly
     def get_modelstatus_color(self):
+        """Return a status string with correct colors based on status"""
         if self.modelstatus == "available":
             return Color.Fg.Green + self.modelstatus + Color.Reset
         else:
             return Color.Fg.Red + self.modelstatus + Color.Reset
 
     def get_meterstatus_color(self):
+        """
+        Return a meter status string with correct colors based on meter
+        status
+        """
         if not self.meterstatus:
             return ""
         if self.meterstatus == "green":
@@ -110,6 +133,7 @@ class Model:
             return Color.Fg.Yellow + self.meterstatus + Color.Reset
 
     def get_row(self, color):
+        """Return a list which can be used for a row in a table."""
         if not self.controller.timestampprovided:
             if color:
                 self.notes.append(

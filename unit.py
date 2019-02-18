@@ -7,6 +7,10 @@ from subordinateunit import SubordinateUnit
 
 class Unit(BasicUnit):
     def __init__(self, unitname, unitinfo, application):
+        """
+        Create a Unit object with basic information from a unit object from a
+        juju status output
+        """
         # Setup the BasicUnit
         BasicUnit.__init__(
             self, unitname, unitinfo, application.model.controller
@@ -27,6 +31,7 @@ class Unit(BasicUnit):
                 )
 
     def get_row(self, color):
+        """Return a list which can be used for a row in a table."""
         notesstr = ", ".join(self.notes)
         namestr = self.name
         portsstr = ",".join(self.openports)

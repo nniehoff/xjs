@@ -7,6 +7,10 @@ class Controller:
     zerodate = datetime.strptime("00:00:00Z", "%H:%M:%SZ")
 
     def __init__(self, controllerinfo={}):
+        """
+        Create a Controller object with basic information from controller
+        object in a juju status output
+        """
         # Default Values
         self.notes = []
         self.models = []
@@ -23,6 +27,13 @@ class Controller:
             )
 
     def update_timestamp(self, date):
+        """
+        Timestamps from juju status for controllers only contain a time but all
+        other timestamps in the juju status contain dates and times.  We need
+        to "guess" and get as close as possible to an accurate date for a
+        controller.  For some versions of juju there is no timestamp, so we
+        will "guess" at a time as well.
+        """
         # if the timestamp was not provided use the latest date
         # if it was provided we only have a time but no date, we should use
         # the latest date from any other status gathered
@@ -43,4 +54,5 @@ class Controller:
                 self.timestamp = date
 
     def add_model(self, model):
+        """Add a model to a controller"""
         self.models.append(model)

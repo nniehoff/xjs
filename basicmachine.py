@@ -6,6 +6,11 @@ from networkinterface import NetworkInterface
 
 
 class BasicMachine:
+    """
+    A BasicMachine Object is inherited by Machines and Containers so common
+    attributes and functions remain here
+    """
+
     column_names = [
         "Machine",
         "Agent",
@@ -22,6 +27,10 @@ class BasicMachine:
     ]
 
     def __init__(self, name, info, controller):
+        """
+        Create a BasicMachine object with basic information from a machine or
+        container object from a juju status output
+        """
         # Default Values
         self.notes = []
         self.networkinterfaces = []
@@ -54,6 +63,7 @@ class BasicMachine:
             )
 
     def get_jujustatus_color(self):
+        """Return a status string with correct colors based on juju status"""
         if self.jujustatus == "started":
             return Color.Fg.Green + self.jujustatus + Color.Reset
         if self.jujustatus in ("error", "down"):
@@ -64,6 +74,9 @@ class BasicMachine:
             return Color.Fg.Yellow + self.jujustatus + Color.Reset
 
     def get_machinestatus_color(self):
+        """
+        Return a status string with correct colors based on machine status
+        """
         if self.machinestatus == "running":
             return Color.Fg.Green + self.machinestatus + Color.Reset
         else:

@@ -44,7 +44,7 @@ Options:
 
 ## TODO
 
-1.  Comment Code
+1.  ~~~Comment Code~~~
 1.  make a map of your colors, and treat that as a class, vs. your structure on 105 and 128
 1.  ~~Look into click for arg parsing~~
 1.  ~~Use black~~
@@ -64,5 +64,5 @@ Options:
 1.  Add support for multiple models
 1.  Get latest juju version
 1.  Get latest charm versions
-1.  Modify for OO
+1.  ~~~Modify for OO~~~
 

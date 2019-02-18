@@ -5,6 +5,11 @@ from colors import Color
 
 
 class BasicUnit:
+    """
+    A BasicMachine Object is inherited by Units and Subordinates so common
+    attributes and functions remain here
+    """
+
     column_names = [
         "Unit",
         "Workload",
@@ -17,6 +22,10 @@ class BasicUnit:
     ]
 
     def __init__(self, name, info, controller):
+        """
+        Create a BasicUnit object with basic information from a unit or
+        subordinate object from a juju status output
+        """
         # Default Values
         self.notes = []
         self.openports = []
@@ -50,6 +59,9 @@ class BasicUnit:
             self.leader = info["leader"]
 
     def get_workloadstatus_color(self):
+        """
+        Return a status string with correct colors based on workload status
+        """
         if self.workloadstatus == "active":
             return Color.Fg.Green + self.workloadstatus + Color.Reset
         if self.workloadstatus in ("error", "blocked"):
@@ -62,6 +74,7 @@ class BasicUnit:
             return Color.Fg.Yellow + self.workloadstatus + Color.Reset
 
     def get_jujustatus_color(self):
+        """Return a status string with correct colors based on juju status"""
         if self.jujustatus in ("idle", "executing"):
             return Color.Fg.Green + self.jujustatus + Color.Reset
         if self.jujustatus == "error":

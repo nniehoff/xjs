@@ -25,6 +25,7 @@ models = []
 
 
 def load_status_file(inputfile):
+    """Load a juju status file, inputfile is a yaml or json file"""
     rawstatus = {}
 
     try:
@@ -53,6 +54,7 @@ def load_status_file(inputfile):
 
 
 def console_print_model_info():
+    """Filter and sort model info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
@@ -60,6 +62,7 @@ def console_print_model_info():
 
 
 def console_print_application_info():
+    """Filter and sort application info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
@@ -67,6 +70,7 @@ def console_print_application_info():
 
 
 def console_print_unit_info():
+    """Filter and sort unit info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
@@ -82,6 +86,7 @@ def console_print_unit_info():
 
 
 def console_print_networkinterface_info():
+    """Filter and sort network info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
@@ -97,6 +102,7 @@ def console_print_networkinterface_info():
 
 
 def console_print_machine_info():
+    """Filter and sort machine info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
@@ -109,7 +115,9 @@ def console_print_machine_info():
     console_print_object(print_what=machines, color=True)
 
 
+# Handle console colors here
 def console_print_object(print_what, color=True):
+    """Print a table formatted for the console"""
     table = PrettyTable()
     # table.set_style(12)
     table.field_names = print_what[0].column_names

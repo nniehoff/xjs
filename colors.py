@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 
 
+# TODO color logic needs to be adjusted, this should handle colors for more
+# than just the console
 class Color:
+    """
+    An object with console colors
+    """
+
     Reset = "\033[0m"
     Bold = "\033[01m"
     Disable = "\033[02m"

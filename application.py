@@ -21,9 +21,14 @@ class Application:
     ]
 
     def __init__(self, appname, appinfo, model):
+        """
+        Create an Application object with basic information from an application
+        object from a juju status output
+        """
         # Default Values
         self.notes = []
         self.units = []
+        self.subordinates = []
         self.version = ""
         self.message = ""
         self.relations = {}
@@ -75,12 +80,20 @@ class Application:
                 unit = Unit(unitname, unitinfo, self)
                 self.units.append(unit)
 
-    def get_scale(self):
-        # TODO This is a problem, if an application is subbordinate we need to
-        # count those
-        return len(self.units)
+    def add_subordinate(self, unit):
+        """Add a subordinate relationship"""
+        self.subordinates.append(unit)
 
+    def get_scale(self):
+        """
+        Return the scale of an application which is the number of units and/or
+        subordinate units
+        """
+        return len(self.units) + len(self.subordinates)
+
+    # TODO These colors should return a color not a string
     def get_status_color(self):
+        """Return a status string with correct colors based on status"""
         if self.status == "active":
             return Color.Fg.Green + self.status + Color.Reset
         elif self.status in ("error", "blocked"):
@@ -93,6 +106,7 @@ class Application:
             return Color.Fg.Yellow + self.status + Color.Reset
 
     def get_scale_color(self):
+        """Return a scale string with correct colors based on scale"""
         scale = self.get_scale()
         if scale == 0:
             return Color.Fg.Red + str(scale) + Color.Reset
@@ -100,6 +114,10 @@ class Application:
             return str(scale)
 
     def get_charmrev_color(self):
+        """
+        Return a charm revision string with correct colors based on the
+        revision
+        """
         if self.charmlatestrev == -1:
             return str(self.charmrev)
         if self.charmrev < self.charmlatestrev:
@@ -110,12 +128,16 @@ class Application:
             return Color.Fg.Red + str(self.charmrev) + Color.Reset
 
     def get_charmorigin_color(self):
+        """
+        Return a charm origin string with correct colors based on the origin
+        """
         if self.charmorigin != "jujucharms":
             return Color.Fg.Yellow + self.charmorigin + Color.Reset
         else:
             return self.charmorigin
 
     def get_row(self, color):
+        """Return a list which can be used for a row in a table."""
         notesstr = ", ".join(self.notes)
 
         if color:
