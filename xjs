@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
-import click
+
 import json
-import re
 import sys
-import yaml
+from application import Application
+import click
+from controller import Controller
+from machine import Machine
+from model import Model
 from prettytable import PrettyTable
+import yaml
 
 
 COLOR_GREEN = "\033[32m"
@@ -16,575 +20,109 @@ COLOR_YELLOW = "\033[33m"
 UPDATE_THRESHOLD = 300
 
 juju_status = {}
+controllers = []
+models = []
 
 
-def load_file(inputfile):
-    global juju_status
+def load_status_file(inputfile):
+    """Load a juju status file, inputfile is a yaml or json file"""
+    rawstatus = {}
 
     try:
-        juju_status = json.loads(inputfile)
+        rawstatus = json.loads(inputfile)
     except Exception:
         try:
-            juju_status = yaml.safe_load(inputfile)
+            rawstatus = yaml.safe_load(inputfile)
         except Exception:
             print(COLOR_RED + "Error trying to load status file" + COLOR_RESET)
             sys.exit(1)
 
-
-def color_model_info():
-    global juju_status
-
-    # Juju Version
-    if re.match("^2", juju_status["model"]["version"]):
-        color = COLOR_GREEN
-    elif re.match("^1", juju_status["model"]["version"]):
-        color = COLOR_YELLOW
+    if "controller" in rawstatus:
+        controller = Controller(rawstatus["controller"])
     else:
-        color = COLOR_RED
-    juju_status["model"]["version_color"] = color
-
-    # Model Status
-    if juju_status["model"]["model-status"]["current"] == "available":
-        color = COLOR_GREEN
-    else:
-        color = COLOR_RED
-    juju_status["model"]["model-status"]["current_color"] = color
-
-    # Model Color
-    if "meter-status" in juju_status["model"]:
-        if juju_status["model"]["meter-status"]["color"] == "green":
-            color = COLOR_GREEN
-        elif juju_status["model"]["meter-status"]["color"] == "red":
-            color = COLOR_RED
-        elif juju_status["model"]["meter-status"]["color"] == "amber":
-            color = COLOR_ORANGE
-        juju_status["model"]["meter-status"]["color_color"] = color
+        controller = Controller()
+    controllers.append(controller)
+    model = Model(rawstatus["model"], controller)
+    controller.add_model(model)
+    models.append(model)
+    for machname, machinfo in rawstatus["machines"].items():
+        machine = Machine(machname, machinfo, model)
+        model.add_machine(machine)
+    for appname, appinfo in rawstatus["applications"].items():
+        application = Application(appname, appinfo, model)
+        model.add_application(application)
 
 
-def color_application_info():
-    global juju_status
-
-    for appname, appinfo in juju_status["applications"].items():
-        # Application Status
-        if appinfo["application-status"]["current"] == "active":
-            color = COLOR_GREEN
-        elif appinfo["application-status"]["current"] in ("error", "blocked"):
-            color = COLOR_RED
-        elif appinfo["application-status"]["current"] == "waiting":
-            color = COLOR_RESET
-        elif appinfo["application-status"]["current"] == "maintenance":
-            color = COLOR_ORANGE
-        else:
-            color = COLOR_YELLOW
-        appinfo["application-status"]["current_color"] = color
-
-        # Scale
-        if appinfo["scale"] == 0:
-            appinfo["scale_color"] = COLOR_RED
-
-        # Charm Revision
-        if "can-upgrade-to" in appinfo:
-            match = re.match(r"\D+(\d+)$", appinfo["can-upgrade-to"])
-            currentversion = match.group(1)
-            if match:
-                if currentversion == appinfo["version"]:
-                    color = COLOR_GREEN
-                elif currentversion < appinfo["version"]:
-                    color = COLOR_YELLOW
-                    appinfo["notes"].append(
-                        "Charm Revision " + currentversion + " is available"
-                    )
-                appinfo["charm-rev_color"] = color
-
-        # Juju Store
-        if appinfo["charm-origin"] != "jujucharms":
-            appinfo["charm-origin_color"] = COLOR_YELLOW
+def console_print_model_info():
+    """Filter and sort model info to print in a table here"""
+    # TODO Handle Sort
+    # TODO Handle Filter
+    # TODO Handle Optional Color Print
+    console_print_object(print_what=models, color=True)
 
 
-def process_application_info():
-    global juju_status
-    for appname in juju_status["applications"]:
-        notes = []
-        scale = 0
-        version = ""
-
-        if juju_status["applications"][appname]["exposed"]:
-            notes.append("exposed")
-        if "units" in juju_status["applications"][appname]:
-            scale = len(juju_status["applications"][appname]["units"].keys())
-        if "version" in juju_status["applications"][appname]:
-            version = juju_status["applications"][appname]["version"]
-
-        juju_status["applications"][appname]["notes"] = notes
-        juju_status["applications"][appname]["scale"] = scale
-        juju_status["applications"][appname]["version"] = version
+def console_print_application_info():
+    """Filter and sort application info to print in a table here"""
+    # TODO Handle Sort
+    # TODO Handle Filter
+    # TODO Handle Optional Color Print
+    console_print_object(print_what=models[0].applications, color=True)
 
 
-def print_model_info():
-    row = []
+def console_print_unit_info():
+    """Filter and sort unit info to print in a table here"""
+    # TODO Handle Sort
+    # TODO Handle Filter
+    # TODO Handle Optional Color Print
+    # TODO Handle If Subordinates
+    units = []
+    for model in models:
+        for application in model.applications:
+            for unit in application.units:
+                units.append(unit)
+                for subunit in unit.subordinates:
+                    units.append(subunit)
+    console_print_object(print_what=units, color=True)
+
+
+def console_print_networkinterface_info():
+    """Filter and sort network info to print in a table here"""
+    # TODO Handle Sort
+    # TODO Handle Filter
+    # TODO Handle Optional Color Print
+    nics = []
+    for model in models:
+        for machine in model.machines:
+            for nic in machine.networkinterfaces:
+                nics.append(nic)
+            for container in machine.containers:
+                for nic in container.networkinterfaces:
+                    nics.append(nic)
+    console_print_object(print_what=nics, color=True)
+
+
+def console_print_machine_info():
+    """Filter and sort machine info to print in a table here"""
+    # TODO Handle Sort
+    # TODO Handle Filter
+    # TODO Handle Optional Color Print
+    machines = []
+    for model in models:
+        for machine in model.machines:
+            machines.append(machine)
+            for container in machine.containers:
+                machines.append(container)
+    console_print_object(print_what=machines, color=True)
+
+
+# Handle console colors here
+def console_print_object(print_what, color=True):
+    """Print a table formatted for the console"""
     table = PrettyTable()
-    table.set_style(12)
-    table.field_names = [
-        "Model",
-        "Controller",
-        "Cloud/Region",
-        "Version",
-        "SLA",
-        "Timestamp",
-        "Model-Status",
-        "Meter-Status",
-        "Message",
-    ]
-    for column in ["name", "controller", "cloud", "version", "sla"]:
-        if column + "_color" in juju_status["model"]:
-            row.append(
-                juju_status["model"][column + "_color"]
-                + juju_status["model"][column]
-                + COLOR_RESET
-            )
-        else:
-            row.append(juju_status["model"][column])
-    if (
-        "controller" in juju_status
-        and "timestamp" in juju_status["controller"]
-    ):
-        row.append(juju_status["controller"]["timestamp"])
-    else:
-        print(
-            COLOR_YELLOW
-            + "WARNING: Guessing at the controller timestamp"
-            + COLOR_RESET
-        )
-        row.append(juju_status["model"]["model-status"]["since"])
-    if "current_color" in juju_status["model"]["model-status"]:
-        row.append(
-            juju_status["model"]["model-status"]["current_color"]
-            + juju_status["model"]["model-status"]["current"]
-            + COLOR_RESET
-        )
-    else:
-        row.append(juju_status["model"]["model-status"]["current"])
-    if "meter-status" in juju_status["model"]:
-        if "color_color" in juju_status["model"]["meter-status"]:
-            row.append(
-                juju_status["model"]["meter-status"]["color_color"]
-                + juju_status["model"]["meter-status"]["color"]
-                + COLOR_RESET
-            )
-        else:
-            row.append(juju_status["model"]["meter-status"]["color"])
-        row.append(juju_status["model"]["meter-status"]["message"])
-    else:
-        row.append("")
-        row.append("")
-    table.add_row(row)
-    table.align = "l"
-    print(table)
-
-
-def process_unit_info():
-    global juju_status
-
-    for appname, appinfo in juju_status["applications"].items():
-        if "units" in appinfo:
-            for unitname, unitinfo in appinfo["units"].items():
-                unitinfo["notes"] = []
-                if "subordinates" in unitinfo:
-                    subordinates = unitinfo["subordinates"]
-                    for subunitname, subunitinfo in subordinates.items():
-                        subunitinfo["notes"] = []
-
-
-def color_unit_info():
-    global juju_status
-
-    for appname, appinfo in juju_status["applications"].items():
-        if "units" in appinfo:
-            for unitname, unitinfo in appinfo["units"].items():
-                workload_status = unitinfo["workload-status"]
-                unitjuju_status = unitinfo["juju-status"]
-
-                # Workload Status
-                if workload_status["current"] == "active":
-                    workload_status["current_color"] = COLOR_GREEN
-                elif workload_status["current"] in ("error", "blocked"):
-                    workload_status["current_color"] = COLOR_RED
-                elif workload_status["current"] == "waiting":
-                    workload_status["current_color"] = COLOR_RESET
-                elif workload_status["current"] == "maintenance":
-                    workload_status["current_color"] = COLOR_ORANGE
-                else:
-                    workload_status["current_color"] = COLOR_YELLOW
-
-                # Juju Status
-                if unitjuju_status["current"] in ("idle", "executing"):
-                    unitjuju_status["current_color"] = COLOR_GREEN
-                elif unitjuju_status["current"] == "error":
-                    unitjuju_status["current_color"] = COLOR_RED
-                else:
-                    unitjuju_status["current_color"] = COLOR_YELLOW
-
-                # Subordinates
-                if "subordinates" in unitinfo:
-                    subordinates = unitinfo["subordinates"]
-                    for subunitname, subunitinfo in subordinates.items():
-                        workload_status = subunitinfo["workload-status"]
-                        subjuju_status = subunitinfo["juju-status"]
-
-                        # Workload Status
-                        if workload_status["current"] == "active":
-                            workload_status["current_color"] = COLOR_GREEN
-                        elif workload_status["current"] in (
-                            "error",
-                            "blocked",
-                        ):
-                            workload_status["current_color"] = COLOR_RED
-                        elif workload_status["current"] == "waiting":
-                            workload_status["current_color"] = COLOR_RESET
-                        elif workload_status["current"] == "maintenance":
-                            workload_status["current_color"] = COLOR_ORANGE
-                        else:
-                            workload_status["current_color"] = COLOR_YELLOW
-
-                        # Juju Status
-                        if subjuju_status["current"] in ("idle", "executing"):
-                            subjuju_status["current_color"] = COLOR_GREEN
-                        elif subjuju_status["current"] == "error":
-                            subjuju_status["current_color"] = COLOR_RED
-                        else:
-                            subjuju_status["current_color"] = COLOR_YELLOW
-
-
-def print_unit_info(hide_subordinate_units=False):
-    table = PrettyTable()
-    table.set_style(12)
-    table.field_names = [
-        "Unit",
-        "Workload",
-        "Agent",
-        "Machine",
-        "Public address",
-        "Ports",
-        "Message",
-        "Notes",
-    ]
-    for appname, appinfo in juju_status["applications"].items():
-        if "units" in appinfo:
-            for unitname, unitinfo in appinfo["units"].items():
-                row = []
-                default_color = COLOR_RESET
-                if "row_color" in unitinfo:
-                    default_color = unitinfo["row_color"]
-                if "leader" in unitinfo and unitinfo["leader"]:
-                    row.append(default_color + unitname + "*")
-                else:
-                    row.append(default_color + unitname)
-                row.append(
-                    unitinfo["workload-status"]["current_color"]
-                    + unitinfo["workload-status"]["current"]
-                    + default_color
-                )
-                row.append(
-                    unitinfo["juju-status"]["current_color"]
-                    + unitinfo["juju-status"]["current"]
-                    + default_color
-                )
-                row.append(unitinfo["machine"])
-                row.append(unitinfo["public-address"])
-                if "open-ports" in unitinfo:
-                    row.append(",".join(unitinfo["open-ports"]))
-                else:
-                    row.append("")
-                if "message" in unitinfo["workload-status"]:
-                    row.append(unitinfo["workload-status"]["message"])
-                else:
-                    row.append("")
-                if "row_color" in unitinfo:
-                    row.append(", ".join(unitinfo["notes"]) + COLOR_RESET)
-                else:
-                    row.append(", ".join(unitinfo["notes"]))
-                table.add_row(row)
-                if "subordinates" in unitinfo and not hide_subordinate_units:
-                    subordinates = unitinfo["subordinates"]
-                    for subunitname, subunitinfo in subordinates.items():
-                        row = []
-                        default_color = COLOR_RESET
-                        if "row_color" in subunitinfo:
-                            default_color = subunitinfo["row_color"]
-                        workload_status = subunitinfo["workload-status"]
-                        subjuju_status = subunitinfo["juju-status"]
-                        if "leader" in subunitinfo and subunitinfo["leader"]:
-                            row.append(
-                                "  " + default_color + subunitname + "*"
-                            )
-                        else:
-                            row.append("  " + default_color + subunitname)
-                        row.append(
-                            workload_status["current_color"]
-                            + workload_status["current"]
-                            + default_color
-                        )
-                        row.append(
-                            subjuju_status["current_color"]
-                            + subjuju_status["current"]
-                            + default_color
-                        )
-                        row.append("")
-                        row.append(unitinfo["public-address"])
-                        row.append("")
-                        row.append(workload_status["message"])
-                        if "row_color" in subunitinfo:
-                            row.append(
-                                ", ".join(subunitinfo["notes"]) + COLOR_RESET
-                            )
-                        else:
-                            row.append(", ".join(subunitinfo["notes"]))
-                        table.add_row(row)
-    table.align = "l"
-    print(table)
-
-
-def print_application_info(hide_scale_zero=False):
-    table = PrettyTable()
-    table.set_style(12)
-    table.field_names = [
-        "App",
-        "Version",
-        "Status",
-        "Scale",
-        "Charm",
-        "Store",
-        "Rev",
-        "OS",
-        "Series",
-        "Notes",
-    ]
-    for appname, appinfo in juju_status["applications"].items():
-        if not (hide_scale_zero and int(appinfo["scale"]) == 0):
-            row = []
-            default_color = COLOR_RESET
-            if "row_color" in appinfo:
-                default_color = appinfo["row_color"]
-                row.append(default_color + appname)
-            else:
-                row.append(appname)
-            row.append(appinfo["version"])
-            if "current_color" in appinfo["application-status"]:
-                row.append(
-                    appinfo["application-status"]["current_color"]
-                    + appinfo["application-status"]["current"]
-                    + default_color
-                )
-            else:
-                row.append(appinfo["application-status"]["current"])
-            for column in [
-                "scale",
-                "charm",
-                "charm-origin",
-                "charm-rev",
-                "os",
-                "series",
-            ]:
-                if column + "_color" in appinfo:
-                    row.append(
-                        appinfo[column + "_color"]
-                        + str(appinfo[column])
-                        + default_color
-                    )
-                else:
-                    row.append(appinfo[column])
-            if "row_color" in appinfo:
-                row.append(", ".join(appinfo["notes"]) + COLOR_RESET)
-            else:
-                row.append(", ".join(appinfo["notes"]))
-            table.add_row(row)
-    table.align = "l"
-    print(table)
-
-
-def process_machine_info():
-    global juju_status
-
-    for machname, machinfo in juju_status["machines"].items():
-        for hardwarepair in machinfo["hardware"].split(" "):
-            key, value = hardwarepair.split("=")
-            machinfo[key] = value
-
-
-def color_machine_info(include_containers):
-    global juju_status
-
-    for machname, machinfo in juju_status["machines"].items():
-        if machinfo["juju-status"]["current"] == "started":
-            machinfo["juju-status"]["current_color"] = COLOR_GREEN
-        elif machinfo["juju-status"]["current"] in ("error", "down"):
-            machinfo["juju-status"]["current_color"] = COLOR_RED
-        elif machinfo["juju-status"]["current"] == "pending":
-            machinfo["juju-status"]["current_color"] = COLOR_ORANGE
-        else:
-            machinfo["juju-status"]["current_color"] = COLOR_YELLOW
-        if "containers" in machinfo and include_containers:
-            for lxcname, lxcinfo in machinfo["containers"].items():
-                if lxcinfo["juju-status"]["current"] == "started":
-                    lxcinfo["juju-status"]["current_color"] = COLOR_GREEN
-                elif lxcinfo["juju-status"]["current"] in ("error", "down"):
-                    lxcinfo["juju-status"]["current_color"] = COLOR_RED
-                elif lxcinfo["juju-status"]["current"] == "pending":
-                    lxcinfo["juju-status"]["current_color"] = COLOR_ORANGE
-                else:
-                    lxcinfo["juju-status"]["current_color"] = COLOR_YELLOW
-
-                if lxcinfo["machine-status"]["message"] == "Container started":
-                    lxcinfo["machine-status"]["message_color"] = COLOR_GREEN
-                else:
-                    lxcinfo["machine-status"]["message_color"] = COLOR_YELLOW
-
-
-def print_machine_info(include_containers):
-    table = PrettyTable()
-    table.set_style(12)
-    table.field_names = [
-        "Machine",
-        "State",
-        "DNS",
-        "Inst id",
-        "Series",
-        "AZ",
-        "Arch",
-        "Cores",
-        "Memory",
-        "Message",
-    ]
-    for machname, machinfo in juju_status["machines"].items():
-        row = []
-        row.append(machname)
-        row.append(
-            machinfo["juju-status"]["current_color"]
-            + machinfo["juju-status"]["current"]
-            + COLOR_RESET
-        )
-        row.append(machinfo["dns-name"])
-        row.append(machinfo["instance-id"])
-        row.append(machinfo["series"])
-        if "availability-zone" in machinfo:
-            row.append(machinfo["availability-zone"])
-        else:
-            row.append("")
-        if "arch" in machinfo:
-            row.append(machinfo["arch"])
-        else:
-            row.append("")
-        if "cores" in machinfo:
-            row.append(machinfo["cores"])
-        else:
-            row.append("")
-        if "mem" in machinfo:
-            row.append(machinfo["mem"])
-        else:
-            row.append("")
-        row.append(machinfo["machine-status"]["message"])
-        table.add_row(row)
-        if "containers" in machinfo and include_containers:
-            for lxcname, lxcinfo in machinfo["containers"].items():
-                row = []
-                row.append(lxcname)
-                row.append(
-                    lxcinfo["juju-status"]["current_color"]
-                    + lxcinfo["juju-status"]["current"]
-                    + COLOR_RESET
-                )
-                row.append(lxcinfo["dns-name"])
-                row.append(lxcinfo["instance-id"])
-                row.append(lxcinfo["series"])
-                row.append("")
-                row.append("")
-                row.append("")
-                row.append("")
-                row.append(
-                    lxcinfo["machine-status"]["message_color"]
-                    + lxcinfo["machine-status"]["message"]
-                    + COLOR_RESET
-                )
-                table.add_row(row)
-    table.align = "l"
-    print(table)
-
-
-def process_network_info():
-    global juju_status
-
-
-def color_network_info(include_containers):
-    global juju_status
-
-    for machname, machinfo in juju_status["machines"].items():
-        for nic, nicinfo in machinfo["network-interfaces"].items():
-            if nicinfo["is-up"]:
-                nicinfo["is-up_color"] = COLOR_GREEN
-            else:
-                nicinfo["is-up_color"] = COLOR_RED
-        if "containers" in machinfo and include_containers:
-            for lxcname, lxcinfo in machinfo["containers"].items():
-                for nic, nicinfo in lxcinfo["network-interfaces"].items():
-                    if nicinfo["is-up"]:
-                        nicinfo["is-up_color"] = COLOR_GREEN
-                    else:
-                        nicinfo["is-up_color"] = COLOR_RED
-
-
-def print_network_info(include_containers):
-    table = PrettyTable()
-    table.set_style(12)
-    table.field_names = [
-        "Machine",
-        "Interface",
-        "IP",
-        "MAC",
-        "Gateway",
-        "Space",
-        "Up",
-    ]
-    for machname, machinfo in juju_status["machines"].items():
-        for nic, nicinfo in machinfo["network-interfaces"].items():
-            row = []
-            row.append(machname)
-            row.append(nic)
-            row.append(",".join(nicinfo["ip-addresses"]))
-            row.append(nicinfo["mac-address"])
-            if "gateway" in nicinfo:
-                row.append(nicinfo["gateway"])
-            else:
-                row.append("")
-            if "space" in nicinfo:
-                row.append(nicinfo["space"])
-            else:
-                row.append("")
-            row.append(
-                nicinfo["is-up_color"] + str(nicinfo["is-up"]) + COLOR_RESET
-            )
-            table.add_row(row)
-        if "containers" in machinfo and include_containers:
-            for lxcname, lxcinfo in machinfo["containers"].items():
-                for nic, nicinfo in lxcinfo["network-interfaces"].items():
-                    row = []
-                    row.append(lxcname)
-                    row.append(nic)
-                    row.append(",".join(nicinfo["ip-addresses"]))
-                    row.append(nicinfo["mac-address"])
-                    if "gateway" in nicinfo:
-                        row.append(nicinfo["gateway"])
-                    else:
-                        row.append("")
-                    if "space" in nicinfo:
-                        row.append(nicinfo["space"])
-                    else:
-                        row.append("")
-                    row.append(
-                        nicinfo["is-up_color"]
-                        + str(nicinfo["is-up"])
-                        + COLOR_RESET
-                    )
-                    table.add_row(row)
+    # table.set_style(12)
+    table.field_names = print_what[0].column_names
+    for row in print_what:
+        table.add_row(row.get_row(color))
     table.align = "l"
     print(table)
 
@@ -664,7 +202,7 @@ def main(
     interest.
     """
 
-    load_file(statusfile)
+    load_status_file(statusfile)
 
     # If no particular field was specified, show them all
     if (
@@ -683,28 +221,23 @@ def main(
         include_containers = True
 
     if show_model:
-        color_model_info()
-        print_model_info()
+        console_print_model_info()
         print("")
     if show_apps:
-        process_application_info()
-        color_application_info()
-        print_application_info(hide_scale_zero)
+        # TODO Handle hide_scale_zero
+        console_print_application_info()
         print("")
     if show_units:
-        process_unit_info()
-        color_unit_info()
-        print_unit_info(hide_subordinate_units)
+        # TODO Handle hide_subordinate_units
+        console_print_unit_info()
         print("")
     if show_machines:
-        process_machine_info()
-        color_machine_info(include_containers)
-        print_machine_info(include_containers)
+        # TODO Handle include_containers
+        console_print_machine_info()
         print("")
     if show_net:
-        process_network_info()
-        color_network_info(include_containers)
-        print_network_info(include_containers)
+        # TODO Handle include_containers
+        console_print_networkinterface_info()
         print("")
 
 
