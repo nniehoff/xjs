@@ -184,6 +184,12 @@ def console_print_object(print_what, color=True):
     is_flag=True,
     help="Include Container information",
 )
+@click.option(
+    "--offline",
+    default=False,
+    is_flag=True,
+    help="Include Container information",
+)
 @click.argument("statusfile", required=True, type=click.File("r"))
 def main(
     statusfile,
@@ -195,6 +201,7 @@ def main(
     show_net,
     show_model,
     include_containers,
+    offline,
 ):
     """
     xjs parses a juju status yaml/json and displays the information
@@ -219,6 +226,10 @@ def main(
         show_net = True
         show_model = True
         include_containers = True
+
+    if not offline:
+        for controller in controllers:
+            controller.update_app_version_info()
 
     if show_model:
         console_print_model_info()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
+import requests
 
 
 class Controller:
@@ -56,3 +57,30 @@ class Controller:
     def add_model(self, model):
         """Add a model to a controller"""
         self.models.append(model)
+
+    def update_app_version_info(self):
+        """
+        Connect to the Juju Charms API and get the latest version of charms
+        """
+        url = "https://api.jujucharms.com/v4/meta/id?"
+        data = {}
+
+        # https://api.jujucharms.com/v4/meta/id?id=cs:xenial/hacluster&id=cs:~containers/bionic/easyrsa&id=nick
+        for model in self.models:
+            for app in model.applications:
+                if app.charmorigin == "jujucharms":
+                    url += "id=" + app.charmid + "&"
+
+        response = None
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+
+        for model in self.models:
+            for app in model.applications:
+                if app.charmorigin == "jujucharms":
+                    if app.charmid in data and "Revision" in data[app.charmid]:
+                        app.charmlatestrev = data[app.charmid]["Revision"]
+                        app.notes.append(
+                            "Stable Rev (" + str(app.charmlatestrev) + ")"
+                        )

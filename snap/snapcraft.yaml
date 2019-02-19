@@ -17,6 +17,7 @@ parts:
       - prettytable
       - click
       - packaging
+      - requests
   xjs:
     source: .
     plugin: dump
