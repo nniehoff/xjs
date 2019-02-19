@@ -81,6 +81,9 @@ class Controller:
                 if app.charmorigin == "jujucharms":
                     if app.charmid in data and "Revision" in data[app.charmid]:
                         app.charmlatestrev = data[app.charmid]["Revision"]
-                        app.notes.append(
-                            "Stable Rev (" + str(app.charmlatestrev) + ")"
-                        )
+                        if app.charmrev < app.charmlatestrev:
+                            app.notes.append(
+                                "Stable Rev (" + str(app.charmlatestrev) + ")"
+                            )
+                        elif app.charmrev > app.charmlatestrev:
+                            app.notes.append("Using Non-Stable Rev")
