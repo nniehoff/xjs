@@ -18,6 +18,7 @@ parts:
       - click
       - packaging
       - requests
+      - pendulum
   xjs:
     source: .
     plugin: dump

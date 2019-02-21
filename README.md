@@ -68,4 +68,4 @@ Options:
 1.  ~~Get latest charm versions~~
 1.  ~~Modify for OO~~
 1.  Add Copyright/License Info
-
+1.  Handle Dates in a common place

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-from datetime import datetime
+import pendulum
 from colors import Color
 from unit import Unit
 
@@ -48,9 +48,16 @@ class Application:
         self.status = appinfo["application-status"]["current"]
 
         # Required Dates
-        self.since = datetime.strptime(
-            appinfo["application-status"]["since"], "%d %b %Y %H:%M:%SZ"
-        )
+        if re.match(r"Z$", appinfo["application-status"]["since"]):
+            self.since = pendulum.from_format(
+                appinfo["application-status"]["since"],
+                "DD MMM YYYY HH:mm:ss",
+                tz="UTC",
+            )
+        else:
+            self.since = pendulum.from_format(
+                appinfo["application-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+            )
         model.controller.update_timestamp(self.since)
 
         # Optional Variables

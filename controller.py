@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-from datetime import datetime
+
 import requests
+import pendulum
+import re
 
 
 class Controller:
-    zerodate = datetime.strptime("00:00:00Z", "%H:%M:%SZ")
+    zerodate = pendulum.from_format("0", "x", tz="UTC")
 
     def __init__(self, controllerinfo={}):
         """
@@ -23,9 +25,17 @@ class Controller:
         # Calculated Values
         if "timestamp" in controllerinfo:
             self.timestampprovided = True
-            self.timestamp = datetime.strptime(
-                controllerinfo["timestamp"], "%H:%M:%SZ"
-            )
+            if re.match(r"Z$", controllerinfo["timestamp"]):
+                self.timestamp = pendulum.from_format(
+                    "01 Jan 1970 " + controllerinfo["timestamp"],
+                    "DD MMM YYYY HH:mm:ss",
+                    tz="UTC",
+                )
+            else:
+                self.timestamp = pendulum.from_format(
+                    "01 Jan 1970 " + controllerinfo["timestamp"],
+                    "DD MMM YYYY HH:mm:ssZ",
+                )
 
     def update_timestamp(self, date):
         """
@@ -40,13 +50,13 @@ class Controller:
         # the latest date from any other status gathered
         if self.timestampprovided:
             # Hard Case - Get the time from the existing timestamp:
-            # Goal Format %d %b %Y %H:%M:%SZ
-            str_time = self.timestamp.strftime("%H:%M:%SZ")
+            # Goal Format %d %b %Y %H:%M:%S%z
+            str_time = self.timestamp.format('HH:mm:ssZ')
             # Get the date from the passed in date
-            str_date = date.strftime("%d %b %Y")
+            str_date = date.format("DD MMM YYYY")
             # create a tempdate:
-            temp_date = datetime.strptime(
-                str_date + " " + str_time, "%d %b %Y %H:%M:%SZ"
+            temp_date = pendulum.from_format(
+                str_date + " " + str_time, "DD MMM YYYY HH:mm:ssZ"
             )
             if temp_date > self.timestamp:
                 self.timestamp = temp_date
