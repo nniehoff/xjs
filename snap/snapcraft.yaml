@@ -17,6 +17,7 @@ parts:
       - prettytable
       - click
       - packaging
+      - pendulum
   xjs:
     source: .
     plugin: dump

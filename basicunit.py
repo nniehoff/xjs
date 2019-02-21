@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from datetime import datetime
+import pendulum
+import re
 from colors import Color
 
 
@@ -41,13 +42,25 @@ class BasicUnit:
         self.publicaddress = info["public-address"]
 
         # Required Dates
-        self.workloadsince = datetime.strptime(
-            info["workload-status"]["since"], "%d %b %Y %H:%M:%SZ"
-        )
+        if re.match(r"Z$", info["workload-status"]["since"]):
+            self.workloadsince = pendulum.from_format(
+                info["workload-status"]["since"],
+                "DD MMM YYYY HH:mm:ss",
+                tz="UTC",
+            )
+        else:
+            self.workloadsince = pendulum.from_format(
+                info["workload-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+            )
         controller.update_timestamp(self.workloadsince)
-        self.jujusince = datetime.strptime(
-            info["juju-status"]["since"], "%d %b %Y %H:%M:%SZ"
-        )
+        if re.match(r"Z$", info["juju-status"]["since"]):
+            self.jujusince = pendulum.from_format(
+                info["juju-status"]["since"], "DD MMM YYYY HH:mm:ss", tz="UTC"
+            )
+        else:
+            self.jujusince = pendulum.from_format(
+                info["juju-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+            )
         controller.update_timestamp(self.jujusince)
 
         # Optional Variables

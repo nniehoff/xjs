@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from datetime import datetime
+import pendulum
+import re
 from colors import Color
 from packaging import version
 
@@ -46,9 +47,16 @@ class Model:
         self.sla = modelinfo["sla"]
 
         # Required Dates
-        self.since = datetime.strptime(
-            modelinfo["model-status"]["since"], "%d %b %Y %H:%M:%SZ"
-        )
+        if re.match(r"Z$", modelinfo["model-status"]["since"]):
+            self.since = pendulum.from_format(
+                modelinfo["model-status"]["since"],
+                "DD MMM YYYY HH:mm:ss",
+                tz="UTC",
+            )
+        else:
+            self.since = pendulum.from_format(
+                modelinfo["model-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+            )
         controller.update_timestamp(self.since)
 
         # Optional Variables
