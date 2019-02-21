@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-from datetime import datetime
+import pendulum
+import re
 from colors import Color
 from networkinterface import NetworkInterface
 
@@ -47,20 +48,33 @@ class BasicMachine:
         self.series = info["series"]
 
         # Required Dates
-        self.jujusince = datetime.strptime(
-            info["juju-status"]["since"], "%d %b %Y %H:%M:%SZ"
-        )
+        if re.match(r"Z$", info["juju-status"]["since"]):
+            self.jujusince = pendulum.from_format(
+                info["juju-status"]["since"], "DD MMM YYYY HH:mm:ss", tz="UTC"
+            )
+        else:
+            self.jujusince = pendulum.from_format(
+                info["juju-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+            )
         controller.update_timestamp(self.jujusince)
-        self.machinesince = datetime.strptime(
-            info["machine-status"]["since"], "%d %b %Y %H:%M:%SZ"
-        )
+        if re.match(r"Z$", info["machine-status"]["since"]):
+            self.machinesince = pendulum.from_format(
+                info["machine-status"]["since"],
+                "DD MMM YYYY HH:mm:ss",
+                tz="UTC",
+            )
+        else:
+            self.machinesince = pendulum.from_format(
+                info["machine-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+            )
         controller.update_timestamp(self.machinesince)
 
         # Handle Network Interfaces
-        for interfacename, interfaceinfo in info["network-interfaces"].items():
-            self.networkinterfaces.append(
-                NetworkInterface(interfacename, interfaceinfo, self)
-            )
+        if 'network-interfaces' in info:
+            for interfacename, interfaceinfo in info["network-interfaces"].items():
+                self.networkinterfaces.append(
+                    NetworkInterface(interfacename, interfaceinfo, self)
+                )
 
     def get_jujustatus_color(self):
         """Return a status string with correct colors based on juju status"""
