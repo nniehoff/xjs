@@ -2,6 +2,8 @@ name: xjs
 base: core18
 version: 'git'
 summary: A tool to parse juju status yaml/json
+architectures:
+  - amd64
 description: |
   XJS Provides a way to parse complex juju status yaml/json files in a simple
   way.
