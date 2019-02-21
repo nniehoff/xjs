@@ -40,7 +40,7 @@ Options:
   -n, --show-net                Show network interface information
   -d, --show-model              Show model information
   -c, --include-containers      Include Container information
-  --offline                     Include Container information
+  --offline                     Don't query jujucharms.com for version information
   --help                        Show this message and exit.
 ```
 

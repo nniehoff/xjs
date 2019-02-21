@@ -21,7 +21,6 @@ UPDATE_THRESHOLD = 300
 
 juju_status = {}
 controllers = []
-models = []
 
 
 def load_status_file(inputfile):
@@ -44,7 +43,6 @@ def load_status_file(inputfile):
     controllers.append(controller)
     model = Model(rawstatus["model"], controller)
     controller.add_model(model)
-    models.append(model)
     for machname, machinfo in rawstatus["machines"].items():
         machine = Machine(machname, machinfo, model)
         model.add_machine(machine)
@@ -58,7 +56,8 @@ def console_print_model_info():
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
-    console_print_object(print_what=models, color=True)
+    for controller in controllers:
+        console_print_object(print_what=controller.models, color=True)
 
 
 def console_print_application_info():
@@ -66,7 +65,9 @@ def console_print_application_info():
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
-    console_print_object(print_what=models[0].applications, color=True)
+    for controller in controllers:
+        for model in controller.models:
+            console_print_object(print_what=model.applications, color=True)
 
 
 def console_print_unit_info():
@@ -76,12 +77,13 @@ def console_print_unit_info():
     # TODO Handle Optional Color Print
     # TODO Handle If Subordinates
     units = []
-    for model in models:
-        for application in model.applications:
-            for unit in application.units:
-                units.append(unit)
-                for subunit in unit.subordinates:
-                    units.append(subunit)
+    for controller in controllers:
+        for model in controller.models:
+            for application in model.applications:
+                for unit in application.units:
+                    units.append(unit)
+                    for subunit in unit.subordinates:
+                        units.append(subunit)
     console_print_object(print_what=units, color=True)
 
 
@@ -91,13 +93,14 @@ def console_print_networkinterface_info():
     # TODO Handle Filter
     # TODO Handle Optional Color Print
     nics = []
-    for model in models:
-        for machine in model.machines:
-            for nic in machine.networkinterfaces:
-                nics.append(nic)
-            for container in machine.containers:
-                for nic in container.networkinterfaces:
+    for controller in controllers:
+        for model in controller.models:
+            for machine in model.machines:
+                for nic in machine.networkinterfaces:
                     nics.append(nic)
+                for container in machine.containers:
+                    for nic in container.networkinterfaces:
+                        nics.append(nic)
     console_print_object(print_what=nics, color=True)
 
 
@@ -107,11 +110,12 @@ def console_print_machine_info():
     # TODO Handle Filter
     # TODO Handle Optional Color Print
     machines = []
-    for model in models:
-        for machine in model.machines:
-            machines.append(machine)
-            for container in machine.containers:
-                machines.append(container)
+    for controller in controllers:
+        for model in controller.models:
+            for machine in model.machines:
+                machines.append(machine)
+                for container in machine.containers:
+                    machines.append(container)
     console_print_object(print_what=machines, color=True)
 
 
@@ -188,11 +192,11 @@ def console_print_object(print_what, color=True):
     "--offline",
     default=False,
     is_flag=True,
-    help="Include Container information",
+    help="Don't query jujucharms.com for version information",
 )
-@click.argument("statusfile", required=True, type=click.File("r"))
+@click.argument("statusfiles", required=True, type=click.File("r"), nargs=-1)
 def main(
-    statusfile,
+    statusfiles,
     hide_scale_zero,
     hide_subordinate_units,
     show_apps,
@@ -209,7 +213,8 @@ def main(
     interest.
     """
 
-    load_status_file(statusfile)
+    for statusfile in statusfiles:
+        load_status_file(statusfile)
 
     # If no particular field was specified, show them all
     if (
