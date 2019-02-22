@@ -8,7 +8,7 @@ description: |
   XJS Provides a way to parse complex juju status yaml/json files in a simple
   way.
 
-license: GPL-3.0-only
+license: GPL-3.0
 
 confinement: strict
 
