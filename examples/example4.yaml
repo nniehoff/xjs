@@ -1,0 +1,1028 @@
+model:
+  name: test
+  type: iaas
+  controller: manual
+  cloud: manual
+  version: 2.3.7
+  model-status:
+    current: available
+    since: 17 Dec 2018 16:28:52+01:00
+  meter-status:
+    color: amber
+    message: user verification pending
+  sla: unsupported
+machines:
+  "0":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:43:53+01:00
+      version: 2.3.7
+    dns-name: 192.168.9.53
+    ip-addresses:
+    - 192.168.9.53
+    - 192.168.0.1
+    - 192.168.10.0
+    instance-id: manual:192.168.9.53
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:54+01:00
+    series: xenial
+    network-interfaces:
+      docker0:
+        ip-addresses:
+        - 192.168.0.1
+        mac-address: 02:42:a2:61:37:ff
+        is-up: true
+      ens160:
+        ip-addresses:
+        - 192.168.9.53
+        mac-address: 00:50:56:a0:71:52
+        gateway: 192.168.9.1
+        is-up: true
+      flannel.1:
+        ip-addresses:
+        - 192.168.10.0
+        mac-address: 5a:8d:33:3d:7e:32
+        is-up: true
+      lxdbr0:
+        ip-addresses:
+        - 192.168.11.1
+        mac-address: fe:08:8c:8d:55:4e
+        is-up: true
+    containers:
+      0/lxd/0:
+        juju-status:
+          current: started
+          since: 19 Feb 2019 10:44:02+01:00
+          version: 2.3.7
+        dns-name: 192.168.11.101
+        ip-addresses:
+        - 192.168.11.101
+        instance-id: juju-66a7b1-0-lxd-0
+        machine-status:
+          current: running
+          message: Container started
+          since: 25 May 2018 10:47:51+02:00
+        series: xenial
+    hardware: arch=amd64 cores=2 mem=7983M
+  "1":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:47:26+01:00
+      version: 2.3.7
+    dns-name: 192.168.9.54
+    ip-addresses:
+    - 192.168.9.54
+    - 192.168.0.1
+    - 192.168.12.0
+    instance-id: manual:192.168.9.54
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:56+01:00
+    series: xenial
+    network-interfaces:
+      docker0:
+        ip-addresses:
+        - 192.168.0.1
+        mac-address: 02:42:59:b0:95:44
+        is-up: true
+      ens160:
+        ip-addresses:
+        - 192.168.9.54
+        mac-address: 00:50:56:a0:67:a1
+        gateway: 192.168.9.1
+        is-up: true
+      flannel.1:
+        ip-addresses:
+        - 192.168.12.0
+        mac-address: 52:88:0f:8c:d1:75
+        is-up: true
+    hardware: arch=amd64 cores=2 mem=7983M
+  "2":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:30:56+01:00
+      version: 2.3.7
+    dns-name: test-etcd1.p.example.com
+    ip-addresses:
+    - test-etcd1.p.example.com
+    - 192.168.9.55
+    instance-id: manual:test-etcd1.p.example.com
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:54+01:00
+    series: xenial
+    network-interfaces:
+      ens160:
+        ip-addresses:
+        - 192.168.9.55
+        mac-address: 00:50:56:a0:0d:fd
+        gateway: 192.168.9.1
+        is-up: true
+    hardware: arch=amd64 cores=2 mem=7983M
+  "3":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:33:45+01:00
+      version: 2.3.7
+    dns-name: test-etcd2.p.example.com
+    ip-addresses:
+    - test-etcd2.p.example.com
+    - 192.168.9.56
+    instance-id: manual:test-etcd2.p.example.com
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:56+01:00
+    series: xenial
+    network-interfaces:
+      ens160:
+        ip-addresses:
+        - 192.168.9.56
+        mac-address: 00:50:56:a0:35:23
+        gateway: 192.168.9.1
+        is-up: true
+    hardware: arch=amd64 cores=2 mem=7983M
+  "4":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:36:39+01:00
+      version: 2.3.7
+    dns-name: test-etcd3.p.example.com
+    ip-addresses:
+    - test-etcd3.p.example.com
+    - 192.168.9.57
+    instance-id: manual:test-etcd3.p.example.com
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:54+01:00
+    series: xenial
+    network-interfaces:
+      ens160:
+        ip-addresses:
+        - 192.168.9.57
+        mac-address: 00:50:56:a0:52:73
+        gateway: 192.168.9.1
+        is-up: true
+    hardware: arch=amd64 cores=2 mem=7983M
+  "5":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:24:28+01:00
+      version: 2.3.7
+    dns-name: test-mon.p.example.com
+    ip-addresses:
+    - test-mon.p.example.com
+    - 192.168.9.58
+    instance-id: manual:test-mon.p.example.com
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:55+01:00
+    series: xenial
+    network-interfaces:
+      ens160:
+        ip-addresses:
+        - 192.168.9.58
+        mac-address: 00:50:56:a0:63:14
+        gateway: 192.168.9.1
+        is-up: true
+    hardware: arch=amd64 cores=4 mem=16047M
+  "6":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:27:44+01:00
+      version: 2.3.7
+    dns-name: test-lb.p.example.com
+    ip-addresses:
+    - test-lb.p.example.com
+    - 192.168.9.59
+    instance-id: manual:test-lb.p.example.com
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:56+01:00
+    series: xenial
+    network-interfaces:
+      ens160:
+        ip-addresses:
+        - 192.168.9.59
+        mac-address: 00:50:56:a0:6b:1e
+        gateway: 192.168.9.1
+        is-up: true
+    hardware: arch=amd64 cores=2 mem=7983M
+  "7":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:51:05+01:00
+      version: 2.3.7
+    dns-name: test-node1.p.example.com
+    ip-addresses:
+    - test-node1.p.example.com
+    - 192.168.13.0
+    - 192.168.9.50
+    instance-id: manual:test-node1.p.example.com
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:57+01:00
+    series: xenial
+    network-interfaces:
+      docker0:
+        ip-addresses:
+        - 192.168.0.1
+        mac-address: 02:42:8b:25:ad:b7
+        is-up: true
+      ens160:
+        ip-addresses:
+        - 192.168.9.50
+        mac-address: 00:50:56:a0:7b:3d
+        gateway: 192.168.9.1
+        is-up: true
+      flannel.1:
+        ip-addresses:
+        - 192.168.13.0
+        mac-address: e6:14:a5:b8:0e:ce
+        is-up: true
+    hardware: arch=amd64 cores=8 mem=16046M
+  "8":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:54:18+01:00
+      version: 2.3.7
+    dns-name: test-node2.p.example.com
+    ip-addresses:
+    - test-node2.p.example.com
+    - 192.168.14.0
+    - 192.168.9.51
+    instance-id: manual:test-node2.p.example.com
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:56+01:00
+    series: xenial
+    network-interfaces:
+      docker0:
+        ip-addresses:
+        - 192.168.0.1
+        mac-address: 02:42:4a:19:b1:bf
+        is-up: true
+      ens160:
+        ip-addresses:
+        - 192.168.9.51
+        mac-address: 00:50:56:a0:5f:8a
+        gateway: 192.168.9.1
+        is-up: true
+      flannel.1:
+        ip-addresses:
+        - 192.168.14.0
+        mac-address: 2a:b1:ed:ac:bc:b6
+        is-up: true
+    hardware: arch=amd64 cores=8 mem=32174M
+  "9":
+    juju-status:
+      current: started
+      since: 19 Feb 2019 10:58:10+01:00
+      version: 2.3.7
+    dns-name: test-node3.p.example.com
+    ip-addresses:
+    - test-node3.p.example.com
+    - 192.168.15.0
+    - 192.168.9.52
+    instance-id: manual:test-node3.p.example.com
+    machine-status:
+      current: running
+      message: Manually provisioned machine
+      since: 17 Dec 2018 16:28:52+01:00
+    series: xenial
+    network-interfaces:
+      docker0:
+        ip-addresses:
+        - 192.168.0.1
+        mac-address: 02:42:99:92:cd:03
+        is-up: true
+      ens160:
+        ip-addresses:
+        - 192.168.9.52
+        mac-address: 00:50:56:a0:04:be
+        gateway: 192.168.9.1
+        is-up: true
+      flannel.1:
+        ip-addresses:
+        - 192.168.15.0
+        mac-address: 3e:3c:c9:f7:d7:04
+        is-up: true
+    hardware: arch=amd64 cores=8 mem=32174M
+applications:
+  apache2:
+    charm: cs:apache2-26
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: apache2
+    charm-rev: 26
+    exposed: true
+    application-status:
+      current: unknown
+      since: 25 May 2018 10:51:37+02:00
+    relations:
+      reverseproxy:
+      - graylog
+    units:
+      apache2/0:
+        workload-status:
+          current: unknown
+          since: 25 May 2018 10:51:37+02:00
+        juju-status:
+          current: idle
+          since: 19 Feb 2019 10:24:47+01:00
+          version: 2.3.7
+        leader: true
+        machine: "5"
+        open-ports:
+        - 80/tcp
+        public-address: test-mon.p.example.com
+  canal:
+    charm: cs:~containers/canal-524
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: canal
+    charm-rev: 524
+    exposed: false
+    application-status:
+      current: active
+      message: Flannel subnet 192.168.13.1/24
+      since: 21 Feb 2019 16:53:29+01:00
+    relations:
+      cni:
+      - kubernetes-master
+      - kubernetes-worker
+      etcd:
+      - etcd
+    subordinate-to:
+    - kubernetes-master
+    - kubernetes-worker
+    version: 0.10.0/2.6.12
+  easyrsa:
+    charm: cs:~containers/easyrsa-195
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: easyrsa
+    charm-rev: 195
+    exposed: false
+    application-status:
+      current: active
+      message: Certificate Authority connected.
+      since: 21 Feb 2019 16:52:15+01:00
+    relations:
+      client:
+      - etcd
+      - kubeapi-load-balancer
+      - kubernetes-master
+      - kubernetes-worker
+    units:
+      easyrsa/0:
+        workload-status:
+          current: active
+          message: Certificate Authority connected.
+          since: 21 Feb 2019 16:52:15+01:00
+        juju-status:
+          current: idle
+          since: 19 Feb 2019 10:44:08+01:00
+          version: 2.3.7
+        leader: true
+        machine: 0/lxd/0
+        public-address: 192.168.11.101
+    version: 3.0.1
+  elasticsearch:
+    charm: cs:elasticsearch-32
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: elasticsearch
+    charm-rev: 32
+    exposed: false
+    application-status:
+      current: active
+      message: Ready
+      since: 25 May 2018 10:52:34+02:00
+    relations:
+      client:
+      - graylog
+      peer:
+      - elasticsearch
+    units:
+      elasticsearch/0:
+        workload-status:
+          current: active
+          message: Ready
+          since: 25 May 2018 10:52:34+02:00
+        juju-status:
+          current: idle
+          since: 19 Feb 2019 10:24:55+01:00
+          version: 2.3.7
+        leader: true
+        machine: "5"
+        open-ports:
+        - 9200/tcp
+        public-address: test-mon.p.example.com
+  etcd:
+    charm: cs:~containers/etcd-378
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: etcd
+    charm-rev: 378
+    exposed: false
+    application-status:
+      current: active
+      message: Healthy with 3 known peers
+      since: 21 Feb 2019 16:54:19+01:00
+    relations:
+      certificates:
+      - easyrsa
+      cluster:
+      - etcd
+      db:
+      - canal
+      - kubernetes-master
+    units:
+      etcd/0:
+        workload-status:
+          current: active
+          message: Healthy with 3 known peers
+          since: 21 Feb 2019 16:54:19+01:00
+        juju-status:
+          current: idle
+          since: 21 Feb 2019 16:55:19+01:00
+          version: 2.3.7
+        machine: "2"
+        open-ports:
+        - 2379/tcp
+        public-address: test-etcd1.p.example.com
+      etcd/1:
+        workload-status:
+          current: active
+          message: Healthy with 3 known peers
+          since: 21 Feb 2019 16:51:28+01:00
+        juju-status:
+          current: idle
+          since: 21 Feb 2019 16:55:19+01:00
+          version: 2.3.7
+        machine: "3"
+        open-ports:
+        - 2379/tcp
+        public-address: test-etcd2.p.example.com
+      etcd/2:
+        workload-status:
+          current: active
+          message: Healthy with 3 known peers
+          since: 21 Feb 2019 16:49:56+01:00
+        juju-status:
+          current: idle
+          since: 21 Feb 2019 16:55:19+01:00
+          version: 2.3.7
+        leader: true
+        machine: "4"
+        open-ports:
+        - 2379/tcp
+        public-address: test-etcd3.p.example.com
+    version: 3.2.10
+  filebeat:
+    charm: cs:filebeat-20
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: filebeat
+    charm-rev: 20
+    exposed: false
+    application-status:
+      current: active
+      message: Filebeat ready.
+      since: 21 Feb 2019 16:53:03+01:00
+    relations:
+      beats-host:
+      - kubernetes-master
+      - kubernetes-worker
+      logstash:
+      - graylog
+    subordinate-to:
+    - kubernetes-master
+    - kubernetes-worker
+    version: 5.6.14
+  grafana:
+    charm: cs:grafana-23
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: grafana
+    charm-rev: 23
+    exposed: true
+    application-status:
+      current: active
+      message: Started grafana-server
+      since: 19 Feb 2019 10:24:48+01:00
+    relations:
+      grafana-source:
+      - prometheus
+    units:
+      grafana/0:
+        workload-status:
+          current: active
+          message: Started grafana-server
+          since: 19 Feb 2019 10:24:48+01:00
+        juju-status:
+          current: idle
+          since: 19 Feb 2019 10:24:50+01:00
+          version: 2.3.7
+        leader: true
+        machine: "5"
+        open-ports:
+        - 3000/tcp
+        public-address: test-mon.p.example.com
+  graylog:
+    charm: cs:graylog-23
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: graylog
+    charm-rev: 23
+    exposed: false
+    application-status:
+      current: active
+      message: 'Ready with: filebeat, elasticsearch, mongodb'
+      since: 21 Feb 2019 16:55:04+01:00
+    relations:
+      beats:
+      - filebeat
+      elasticsearch:
+      - elasticsearch
+      mongodb:
+      - mongodb
+      website:
+      - apache2
+    units:
+      graylog/0:
+        workload-status:
+          current: active
+          message: 'Ready with: filebeat, elasticsearch, mongodb'
+          since: 21 Feb 2019 16:55:04+01:00
+        juju-status:
+          current: idle
+          since: 19 Feb 2019 10:24:43+01:00
+          version: 2.3.7
+        leader: true
+        machine: "5"
+        open-ports:
+        - 5044/tcp
+        public-address: test-mon.p.example.com
+    version: 2.3.1-1
+  kubeapi-load-balancer:
+    charm: cs:~containers/kubeapi-load-balancer-525
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: kubeapi-load-balancer
+    charm-rev: 525
+    exposed: true
+    application-status:
+      current: active
+      message: Loadbalancer ready.
+      since: 21 Feb 2019 16:54:12+01:00
+    relations:
+      apiserver:
+      - kubernetes-master
+      certificates:
+      - easyrsa
+      loadbalancer:
+      - kubernetes-master
+      website:
+      - kubernetes-worker
+    units:
+      kubeapi-load-balancer/0:
+        workload-status:
+          current: active
+          message: Loadbalancer ready.
+          since: 21 Feb 2019 16:54:12+01:00
+        juju-status:
+          current: executing
+          message: running action debug
+          since: 21 Feb 2019 16:55:19+01:00
+          version: 2.3.7
+        leader: true
+        machine: "6"
+        open-ports:
+        - 443/tcp
+        public-address: test-lb.p.example.com
+    version: 1.10.3
+  kubernetes-master:
+    charm: cs:~containers/kubernetes-master-542
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: kubernetes-master
+    charm-rev: 542
+    exposed: false
+    application-status:
+      current: active
+      message: Kubernetes master running.
+      since: 21 Feb 2019 16:55:10+01:00
+    relations:
+      certificates:
+      - easyrsa
+      cni:
+      - canal
+      etcd:
+      - etcd
+      juju-info:
+      - filebeat
+      - telegraf
+      kube-api-endpoint:
+      - kubeapi-load-balancer
+      kube-control:
+      - kubernetes-worker
+      loadbalancer:
+      - kubeapi-load-balancer
+    units:
+      kubernetes-master/0:
+        workload-status:
+          current: active
+          message: Kubernetes master running.
+          since: 21 Feb 2019 16:55:10+01:00
+        juju-status:
+          current: executing
+          message: running action debug
+          since: 21 Feb 2019 16:55:18+01:00
+          version: 2.3.7
+        machine: "0"
+        open-ports:
+        - 6443/tcp
+        public-address: 192.168.9.53
+        subordinates:
+          canal/1:
+            workload-status:
+              current: active
+              message: Flannel subnet 192.168.10.1/24
+              since: 21 Feb 2019 16:55:11+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:44:28+01:00
+              version: 2.3.7
+            upgrading-from: cs:~containers/canal-524
+            public-address: 192.168.9.53
+          filebeat/1:
+            workload-status:
+              current: active
+              message: Filebeat ready.
+              since: 21 Feb 2019 16:54:58+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:44:23+01:00
+              version: 2.3.7
+            upgrading-from: cs:filebeat-20
+            public-address: 192.168.9.53
+          telegraf/1:
+            workload-status:
+              current: active
+              message: Monitoring kubernetes-master/0
+              since: 21 Feb 2019 16:54:57+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:44:30+01:00
+              version: 2.3.7
+            upgrading-from: cs:telegraf-27
+            open-ports:
+            - 9103/tcp
+            public-address: 192.168.9.53
+      kubernetes-master/1:
+        workload-status:
+          current: active
+          message: Kubernetes master running.
+          since: 21 Feb 2019 16:52:52+01:00
+        juju-status:
+          current: executing
+          message: running action debug
+          since: 21 Feb 2019 16:55:18+01:00
+          version: 2.3.7
+        leader: true
+        machine: "1"
+        open-ports:
+        - 6443/tcp
+        public-address: 192.168.9.54
+        subordinates:
+          canal/0:
+            workload-status:
+              current: active
+              message: Flannel subnet 192.168.12.1/24
+              since: 21 Feb 2019 16:50:54+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:47:56+01:00
+              version: 2.3.7
+            upgrading-from: cs:~containers/canal-524
+            public-address: 192.168.9.54
+          filebeat/0:
+            workload-status:
+              current: active
+              message: Filebeat ready.
+              since: 21 Feb 2019 16:52:53+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:47:51+01:00
+              version: 2.3.7
+            upgrading-from: cs:filebeat-20
+            public-address: 192.168.9.54
+          telegraf/0:
+            workload-status:
+              current: active
+              message: Monitoring kubernetes-master/1
+              since: 21 Feb 2019 16:52:42+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:47:55+01:00
+              version: 2.3.7
+            upgrading-from: cs:telegraf-27
+            open-ports:
+            - 9103/tcp
+            public-address: 192.168.9.54
+    version: 1.12.5
+  kubernetes-worker:
+    charm: cs:~containers/kubernetes-worker-398
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: kubernetes-worker
+    charm-rev: 398
+    exposed: true
+    application-status:
+      current: active
+      message: Kubernetes worker running.
+      since: 21 Feb 2019 16:52:57+01:00
+    relations:
+      certificates:
+      - easyrsa
+      cni:
+      - canal
+      juju-info:
+      - filebeat
+      - telegraf
+      kube-api-endpoint:
+      - kubeapi-load-balancer
+      kube-control:
+      - kubernetes-master
+    units:
+      kubernetes-worker/0:
+        workload-status:
+          current: active
+          message: Kubernetes worker running.
+          since: 21 Feb 2019 16:52:57+01:00
+        juju-status:
+          current: executing
+          message: running action debug
+          since: 21 Feb 2019 16:55:19+01:00
+          version: 2.3.7
+        machine: "7"
+        open-ports:
+        - 80/tcp
+        - 443/tcp
+        public-address: test-node1.p.example.com
+        subordinates:
+          canal/4:
+            workload-status:
+              current: active
+              message: Flannel subnet 192.168.13.1/24
+              since: 21 Feb 2019 16:53:29+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:51:22+01:00
+              version: 2.3.7
+            upgrading-from: cs:~containers/canal-524
+            public-address: test-node1.p.example.com
+          filebeat/4:
+            workload-status:
+              current: active
+              message: Filebeat ready.
+              since: 21 Feb 2019 16:50:09+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:51:15+01:00
+              version: 2.3.7
+            upgrading-from: cs:filebeat-20
+            public-address: test-node1.p.example.com
+          telegraf/4:
+            workload-status:
+              current: active
+              message: Monitoring kubernetes-worker/0
+              since: 21 Feb 2019 16:50:13+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:51:14+01:00
+              version: 2.3.7
+            leader: true
+            upgrading-from: cs:telegraf-27
+            open-ports:
+            - 9103/tcp
+            public-address: test-node1.p.example.com
+      kubernetes-worker/1:
+        workload-status:
+          current: active
+          message: Kubernetes worker running.
+          since: 21 Feb 2019 16:53:13+01:00
+        juju-status:
+          current: executing
+          message: running action debug
+          since: 21 Feb 2019 16:55:18+01:00
+          version: 2.3.7
+        leader: true
+        machine: "8"
+        open-ports:
+        - 80/tcp
+        - 443/tcp
+        public-address: test-node2.p.example.com
+        subordinates:
+          canal/2:
+            workload-status:
+              current: active
+              message: Flannel subnet 192.168.14.1/24
+              since: 21 Feb 2019 16:53:01+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:54:33+01:00
+              version: 2.3.7
+            upgrading-from: cs:~containers/canal-524
+            public-address: test-node2.p.example.com
+          filebeat/2:
+            workload-status:
+              current: active
+              message: Filebeat ready.
+              since: 21 Feb 2019 16:53:03+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:54:25+01:00
+              version: 2.3.7
+            upgrading-from: cs:filebeat-20
+            public-address: test-node2.p.example.com
+          telegraf/2:
+            workload-status:
+              current: active
+              message: Monitoring kubernetes-worker/1
+              since: 21 Feb 2019 16:53:01+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:54:23+01:00
+              version: 2.3.7
+            upgrading-from: cs:telegraf-27
+            open-ports:
+            - 9103/tcp
+            public-address: test-node2.p.example.com
+      kubernetes-worker/2:
+        workload-status:
+          current: active
+          message: Kubernetes worker running.
+          since: 21 Feb 2019 16:54:30+01:00
+        juju-status:
+          current: executing
+          message: running action debug
+          since: 21 Feb 2019 16:55:19+01:00
+          version: 2.3.7
+        machine: "9"
+        open-ports:
+        - 80/tcp
+        - 443/tcp
+        public-address: test-node3.p.example.com
+        subordinates:
+          canal/3:
+            workload-status:
+              current: active
+              message: Flannel subnet 192.168.15.1/24
+              since: 21 Feb 2019 16:54:25+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:58:17+01:00
+              version: 2.3.7
+            leader: true
+            upgrading-from: cs:~containers/canal-524
+            public-address: test-node3.p.example.com
+          filebeat/3:
+            workload-status:
+              current: active
+              message: Filebeat ready.
+              since: 21 Feb 2019 16:54:24+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:58:12+01:00
+              version: 2.3.7
+            leader: true
+            upgrading-from: cs:filebeat-20
+            public-address: test-node3.p.example.com
+          telegraf/3:
+            workload-status:
+              current: active
+              message: Monitoring kubernetes-worker/2
+              since: 21 Feb 2019 16:54:33+01:00
+            juju-status:
+              current: idle
+              since: 19 Feb 2019 10:58:19+01:00
+              version: 2.3.7
+            upgrading-from: cs:telegraf-27
+            open-ports:
+            - 9103/tcp
+            public-address: test-node3.p.example.com
+    version: 1.12.5
+  mongodb:
+    charm: cs:mongodb-52
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: mongodb
+    charm-rev: 52
+    exposed: false
+    application-status:
+      current: active
+      message: Unit is ready
+      since: 21 Feb 2019 16:55:01+01:00
+    relations:
+      database:
+      - graylog
+      replica-set:
+      - mongodb
+    units:
+      mongodb/0:
+        workload-status:
+          current: active
+          message: Unit is ready
+          since: 21 Feb 2019 16:55:01+01:00
+        juju-status:
+          current: idle
+          since: 19 Feb 2019 10:25:01+01:00
+          version: 2.3.7
+        leader: true
+        machine: "5"
+        open-ports:
+        - 27017/tcp
+        - 27019/tcp
+        - 27021/tcp
+        - 28017/tcp
+        public-address: test-mon.p.example.com
+    version: 2.6.10
+  prometheus:
+    charm: cs:prometheus-7
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: prometheus
+    charm-rev: 7
+    exposed: false
+    application-status:
+      current: active
+      message: Ready
+      since: 09 Jan 2019 11:13:53+01:00
+    relations:
+      grafana-source:
+      - grafana
+      target:
+      - telegraf
+    units:
+      prometheus/0:
+        workload-status:
+          current: active
+          message: Ready
+          since: 09 Jan 2019 11:13:53+01:00
+        juju-status:
+          current: idle
+          since: 19 Feb 2019 10:24:38+01:00
+          version: 2.3.7
+        leader: true
+        machine: "5"
+        open-ports:
+        - 9090/tcp
+        - 12321/tcp
+        public-address: test-mon.p.example.com
+  telegraf:
+    charm: cs:telegraf-27
+    series: xenial
+    os: ubuntu
+    charm-origin: jujucharms
+    charm-name: telegraf
+    charm-rev: 27
+    exposed: false
+    application-status:
+      current: active
+      message: Monitoring kubernetes-master/1
+      since: 21 Feb 2019 16:52:42+01:00
+    relations:
+      juju-info:
+      - kubernetes-master
+      - kubernetes-worker
+      prometheus-client:
+      - prometheus
+    subordinate-to:
+    - kubernetes-master
+    - kubernetes-worker
+storage: {}

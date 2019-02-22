@@ -1,8 +1,22 @@
 #!/usr/bin/env python3
+# This file is part of xjs a tool used to disply offline juju status
+# Copyright 2019 Canonical Ltd.
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 3, as published by the
+# Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranties of MERCHANTABILITY,
+# SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pendulum
 import re
 from colors import Color
+import pendulum
 
 
 class BasicUnit:
@@ -42,7 +56,7 @@ class BasicUnit:
         self.publicaddress = info["public-address"]
 
         # Required Dates
-        if re.match(r"Z$", info["workload-status"]["since"]):
+        if re.match(r".*Z$", info["workload-status"]["since"]):
             self.workloadsince = pendulum.from_format(
                 info["workload-status"]["since"],
                 "DD MMM YYYY HH:mm:ss",
@@ -53,7 +67,7 @@ class BasicUnit:
                 info["workload-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
             )
         controller.update_timestamp(self.workloadsince)
-        if re.match(r"Z$", info["juju-status"]["since"]):
+        if re.match(r".*Z$", info["juju-status"]["since"]):
             self.jujusince = pendulum.from_format(
                 info["juju-status"]["since"], "DD MMM YYYY HH:mm:ss", tz="UTC"
             )

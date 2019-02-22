@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
+# This file is part of xjs a tool used to disply offline juju status
+# Copyright 2019 Canonical Ltd.
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 3, as published by the
+# Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranties of MERCHANTABILITY,
+# SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import pendulum
 import re
 from colors import Color
 from packaging import version
+import pendulum
 
 
 class Model:
@@ -47,7 +61,7 @@ class Model:
         self.sla = modelinfo["sla"]
 
         # Required Dates
-        if re.match(r"Z$", modelinfo["model-status"]["since"]):
+        if re.match(r".*Z$", modelinfo["model-status"]["since"]):
             self.since = pendulum.from_format(
                 modelinfo["model-status"]["since"],
                 "DD MMM YYYY HH:mm:ss",
@@ -66,6 +80,12 @@ class Model:
         if "upgrade-available" in modelinfo:
             self.upgradeavailable = modelinfo["upgrade-available"]
             self.notes.append("upgrade available: " + self.upgradeavailable)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __lt__(self, other):
+        return self.name < other.name
 
     def add_application(self, application):
         """Add an Application to this model"""

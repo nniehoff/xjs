@@ -9,7 +9,11 @@ matrix:
 dist: bionic
 sudo: true
 install:
-  - "pip install pyyaml prettytable flake8 click packaging pendulum"
+  - "pip install pyyaml prettytable flake8 click packaging pendulum requests"
 script:
   - "pycodestyle xjs"
   - "flake8 xjs"
+  - python3 xjs examples/example1.json > /dev/null
+  - python3 xjs examples/example2.json > /dev/null
+  - python3 xjs examples/example3.yaml > /dev/null
+  - python3 xjs examples/example4.yaml > /dev/null

@@ -1,4 +1,18 @@
 #!/usr/bin/env python3
+# This file is part of xjs a tool used to disply offline juju status
+# Copyright 2019 Canonical Ltd.
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 3, as published by the
+# Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranties of MERCHANTABILITY,
+# SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import json
@@ -11,7 +25,6 @@ from model import Model
 from prettytable import PrettyTable
 import yaml
 
-
 COLOR_GREEN = "\033[32m"
 COLOR_ORANGE = "\u001b[31;1m"
 COLOR_RED = "\033[31m"
@@ -21,7 +34,6 @@ UPDATE_THRESHOLD = 300
 
 juju_status = {}
 controllers = []
-models = []
 
 
 def load_status_file(inputfile):
@@ -44,7 +56,6 @@ def load_status_file(inputfile):
     controllers.append(controller)
     model = Model(rawstatus["model"], controller)
     controller.add_model(model)
-    models.append(model)
     for machname, machinfo in rawstatus["machines"].items():
         machine = Machine(machname, machinfo, model)
         model.add_machine(machine)
@@ -53,66 +64,72 @@ def load_status_file(inputfile):
         model.add_application(application)
 
 
-def console_print_model_info():
+def console_print_model_info(color=True):
     """Filter and sort model info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
-    console_print_object(print_what=models, color=True)
+    for controller in controllers:
+        console_print_object(print_what=controller.models, color=color)
 
 
-def console_print_application_info():
+def console_print_application_info(color=True):
     """Filter and sort application info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
-    console_print_object(print_what=models[0].applications, color=True)
+    for controller in controllers:
+        for model in controller.models:
+            console_print_object(print_what=model.applications, color=color)
 
 
-def console_print_unit_info():
+def console_print_unit_info(color=True):
     """Filter and sort unit info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
     # TODO Handle If Subordinates
     units = []
-    for model in models:
-        for application in model.applications:
-            for unit in application.units:
-                units.append(unit)
-                for subunit in unit.subordinates:
-                    units.append(subunit)
-    console_print_object(print_what=units, color=True)
+    for controller in controllers:
+        for model in controller.models:
+            for application in model.applications:
+                for unit in application.units:
+                    units.append(unit)
+                    for subunit in unit.subordinates:
+                        units.append(subunit)
+    console_print_object(print_what=units, color=color)
 
 
-def console_print_networkinterface_info():
+def console_print_networkinterface_info(color=True):
     """Filter and sort network info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
     nics = []
-    for model in models:
-        for machine in model.machines:
-            for nic in machine.networkinterfaces:
-                nics.append(nic)
-            for container in machine.containers:
-                for nic in container.networkinterfaces:
+    for controller in controllers:
+        for model in controller.models:
+            for machine in model.machines:
+                for nic in machine.networkinterfaces:
                     nics.append(nic)
-    console_print_object(print_what=nics, color=True)
+                for container in machine.containers:
+                    for nic in container.networkinterfaces:
+                        nics.append(nic)
+    console_print_object(print_what=nics, color=color)
 
 
-def console_print_machine_info():
+def console_print_machine_info(color=True):
     """Filter and sort machine info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Optional Color Print
     machines = []
-    for model in models:
-        for machine in model.machines:
-            machines.append(machine)
-            for container in machine.containers:
-                machines.append(container)
-    console_print_object(print_what=machines, color=True)
+    for controller in controllers:
+        for model in controller.models:
+            for machine in model.machines:
+                machines.append(machine)
+                for container in machine.containers:
+                    machines.append(container)
+    console_print_object(print_what=machines, color=color)
 
 
 # Handle console colors here
@@ -129,20 +146,6 @@ def console_print_object(print_what, color=True):
 
 @click.command()
 @click.option(
-    "--hide-scale-zero",
-    "-h",
-    default=False,
-    is_flag=True,
-    help="Hide applications with a scale of 0",
-)
-@click.option(
-    "--hide-subordinate-units",
-    "-s",
-    default=False,
-    is_flag=True,
-    help="Hide subordinate units",
-)
-@click.option(
     "--show-apps",
     "-a",
     default=False,
@@ -150,11 +153,25 @@ def console_print_object(print_what, color=True):
     help="Show application information",
 )
 @click.option(
-    "--show-units",
-    "-u",
+    "--include-containers",
+    "-c",
     default=False,
     is_flag=True,
-    help="Show unit information",
+    help="Include Container information",
+)
+@click.option(
+    "--show-model",
+    "-d",
+    default=False,
+    is_flag=True,
+    help="Show model information",
+)
+@click.option(
+    "--hide-scale-zero",
+    "-h",
+    default=False,
+    is_flag=True,
+    help="Hide applications with a scale of 0",
 )
 @click.option(
     "--show-machines",
@@ -171,22 +188,31 @@ def console_print_object(print_what, color=True):
     help="Show network interface information",
 )
 @click.option(
-    "--show-model",
-    "-d",
+    "--hide-subordinate-units",
+    "-s",
     default=False,
     is_flag=True,
-    help="Show model information",
+    help="Hide subordinate units",
 )
 @click.option(
-    "--include-containers",
-    "-c",
+    "--show-units",
+    "-u",
     default=False,
     is_flag=True,
-    help="Include Container information",
+    help="Show unit information",
 )
-@click.argument("statusfile", required=True, type=click.File("r"))
+@click.option(
+    "--no-color", default=False, is_flag=True, help="Remove color from output"
+)
+@click.option(
+    "--offline",
+    default=False,
+    is_flag=True,
+    help="Don't query jujucharms.com for version information",
+)
+@click.argument("statusfiles", required=True, type=click.File("r"), nargs=-1)
 def main(
-    statusfile,
+    statusfiles,
     hide_scale_zero,
     hide_subordinate_units,
     show_apps,
@@ -195,6 +221,8 @@ def main(
     show_net,
     show_model,
     include_containers,
+    offline,
+    no_color,
 ):
     """
     xjs parses a juju status yaml/json and displays the information
@@ -202,7 +230,9 @@ def main(
     interest.
     """
 
-    load_status_file(statusfile)
+    color = not no_color
+    for statusfile in statusfiles:
+        load_status_file(statusfile)
 
     # If no particular field was specified, show them all
     if (
@@ -220,24 +250,28 @@ def main(
         show_model = True
         include_containers = True
 
+    if not offline:
+        for controller in controllers:
+            controller.update_app_version_info()
+
     if show_model:
-        console_print_model_info()
+        console_print_model_info(color)
         print("")
     if show_apps:
         # TODO Handle hide_scale_zero
-        console_print_application_info()
+        console_print_application_info(color)
         print("")
     if show_units:
         # TODO Handle hide_subordinate_units
-        console_print_unit_info()
+        console_print_unit_info(color)
         print("")
     if show_machines:
         # TODO Handle include_containers
-        console_print_machine_info()
+        console_print_machine_info(color)
         print("")
     if show_net:
         # TODO Handle include_containers
-        console_print_networkinterface_info()
+        console_print_networkinterface_info(color)
         print("")
 
 

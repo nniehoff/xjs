@@ -1,8 +1,22 @@
 #!/usr/bin/env python3
+# This file is part of xjs a tool used to disply offline juju status
+# Copyright 2019 Canonical Ltd.
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 3, as published by the
+# Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranties of MERCHANTABILITY,
+# SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import pendulum
 from colors import Color
+import pendulum
 from unit import Unit
 
 
@@ -48,7 +62,7 @@ class Application:
         self.status = appinfo["application-status"]["current"]
 
         # Required Dates
-        if re.match(r"Z$", appinfo["application-status"]["since"]):
+        if re.match(r".*Z$", appinfo["application-status"]["since"]):
             self.since = pendulum.from_format(
                 appinfo["application-status"]["since"],
                 "DD MMM YYYY HH:mm:ss",
@@ -63,8 +77,6 @@ class Application:
         # Optional Variables
         if "message" in appinfo["application-status"]:
             self.message = appinfo["application-status"]["message"]
-        # TODO Figure out how to compare app versions and get latest from the
-        # charm store
         if "version" in appinfo:
             self.version = appinfo["version"]
         if "relations" in appinfo:
@@ -72,7 +84,6 @@ class Application:
         if "endpoint-bindings" in appinfo:
             self.endpointbindings = appinfo["endpoint-bindings"]
         if "can-upgrade-to" in appinfo:
-            # TODO Get latest revision from charm store
             match = re.match(r"\D+(\d+)$", appinfo["can-upgrade-to"])
             self.charmlatestrev = int(match.group(1))
             self.canupgradeto = appinfo["can-upgrade-to"]
@@ -80,6 +91,18 @@ class Application:
         # Calculated Values
         if self.exposed:
             self.notes.append("exposed")
+        self.charmid = ""
+        match = re.match(r"(cs:~.*)\/(.*)-\d+$", self.charm)
+        if match:
+            self.charmid = (
+                match.group(1) + "/" + self.series + "/" + match.group(2)
+            )
+        else:
+            match = re.match(r"cs:(.*)-\d+$", self.charm)
+            if match:
+                self.charmid = "cs:" + self.series + "/" + match.group(1)
+        if self.charmorigin != "jujucharms":
+            self.notes.append("Not from Charm Store")
 
         # Handle Units
         if "units" in appinfo:
@@ -132,6 +155,7 @@ class Application:
         elif self.charmrev == self.charmlatestrev:
             return Color.Fg.Green + str(self.charmrev) + Color.Reset
         else:
+            self.notes.append("Using Unstable Version of Charm")
             return Color.Fg.Red + str(self.charmrev) + Color.Reset
 
     def get_charmorigin_color(self):
@@ -145,7 +169,6 @@ class Application:
 
     def get_row(self, color):
         """Return a list which can be used for a row in a table."""
-        notesstr = ", ".join(self.notes)
 
         if color:
             return [
@@ -158,7 +181,7 @@ class Application:
                 self.get_charmrev_color(),
                 self.os,
                 self.series,
-                notesstr,
+                ", ".join(self.notes),
             ]
         else:
             return [
@@ -171,5 +194,5 @@ class Application:
                 str(self.charmrev),
                 self.os,
                 self.series,
-                notesstr,
+                ", ".join(self.notes),
             ]
