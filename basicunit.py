@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import pendulum
 import re
 from colors import Color
+import pendulum
 
 
 class BasicUnit:
@@ -42,7 +42,7 @@ class BasicUnit:
         self.publicaddress = info["public-address"]
 
         # Required Dates
-        if re.match(r"Z$", info["workload-status"]["since"]):
+        if re.match(r".*Z$", info["workload-status"]["since"]):
             self.workloadsince = pendulum.from_format(
                 info["workload-status"]["since"],
                 "DD MMM YYYY HH:mm:ss",
@@ -53,7 +53,7 @@ class BasicUnit:
                 info["workload-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
             )
         controller.update_timestamp(self.workloadsince)
-        if re.match(r"Z$", info["juju-status"]["since"]):
+        if re.match(r".*Z$", info["juju-status"]["since"]):
             self.jujusince = pendulum.from_format(
                 info["juju-status"]["since"], "DD MMM YYYY HH:mm:ss", tz="UTC"
             )

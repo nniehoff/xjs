@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 
-import requests
-import pendulum
 import re
+import pendulum
+import requests
 
 
 class Controller:
@@ -25,7 +25,7 @@ class Controller:
         # Calculated Values
         if "timestamp" in controllerinfo:
             self.timestampprovided = True
-            if re.match(r"Z$", controllerinfo["timestamp"]):
+            if re.match(r'.*Z$', controllerinfo["timestamp"]):
                 self.timestamp = pendulum.from_format(
                     "01 Jan 1970 " + controllerinfo["timestamp"],
                     "DD MMM YYYY HH:mm:ss",
@@ -34,7 +34,7 @@ class Controller:
             else:
                 self.timestamp = pendulum.from_format(
                     "01 Jan 1970 " + controllerinfo["timestamp"],
-                    "DD MMM YYYY HH:mm:ssZ",
+                    "DD MMM YYYY HH:mm:ss"
                 )
 
     def update_timestamp(self, date):

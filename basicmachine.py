@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import pendulum
 import re
 from colors import Color
 from networkinterface import NetworkInterface
+import pendulum
 
 
 class BasicMachine:
@@ -48,7 +48,7 @@ class BasicMachine:
         self.series = info["series"]
 
         # Required Dates
-        if re.match(r"Z$", info["juju-status"]["since"]):
+        if re.match(r".*Z$", info["juju-status"]["since"]):
             self.jujusince = pendulum.from_format(
                 info["juju-status"]["since"], "DD MMM YYYY HH:mm:ss", tz="UTC"
             )
@@ -57,7 +57,7 @@ class BasicMachine:
                 info["juju-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
             )
         controller.update_timestamp(self.jujusince)
-        if re.match(r"Z$", info["machine-status"]["since"]):
+        if re.match(r".*Z$", info["machine-status"]["since"]):
             self.machinesince = pendulum.from_format(
                 info["machine-status"]["since"],
                 "DD MMM YYYY HH:mm:ss",

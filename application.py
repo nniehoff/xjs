@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import re
-import pendulum
 from colors import Color
+import pendulum
 from unit import Unit
 
 
@@ -48,7 +48,7 @@ class Application:
         self.status = appinfo["application-status"]["current"]
 
         # Required Dates
-        if re.match(r"Z$", appinfo["application-status"]["since"]):
+        if re.match(r".*Z$", appinfo["application-status"]["since"]):
             self.since = pendulum.from_format(
                 appinfo["application-status"]["since"],
                 "DD MMM YYYY HH:mm:ss",

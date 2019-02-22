@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import pendulum
 import re
 from colors import Color
 from packaging import version
+import pendulum
 
 
 class Model:
@@ -47,7 +47,7 @@ class Model:
         self.sla = modelinfo["sla"]
 
         # Required Dates
-        if re.match(r"Z$", modelinfo["model-status"]["since"]):
+        if re.match(r".*Z$", modelinfo["model-status"]["since"]):
             self.since = pendulum.from_format(
                 modelinfo["model-status"]["since"],
                 "DD MMM YYYY HH:mm:ss",
@@ -66,6 +66,12 @@ class Model:
         if "upgrade-available" in modelinfo:
             self.upgradeavailable = modelinfo["upgrade-available"]
             self.notes.append("upgrade available: " + self.upgradeavailable)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __lt__(self, other):
+        return self.name < other.name
 
     def add_application(self, application):
         """Add an Application to this model"""
