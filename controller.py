@@ -1,4 +1,18 @@
 #!/usr/bin/env python3
+# This file is part of xjs a tool used to disply offline juju status
+# Copyright 2019 Canonical Ltd.
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License version 3, as published by the
+# Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranties of MERCHANTABILITY,
+# SATISFACTORY QUALITY, or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 import re
@@ -25,7 +39,7 @@ class Controller:
         # Calculated Values
         if "timestamp" in controllerinfo:
             self.timestampprovided = True
-            if re.match(r'.*Z$', controllerinfo["timestamp"]):
+            if re.match(r".*Z$", controllerinfo["timestamp"]):
                 self.timestamp = pendulum.from_format(
                     "01 Jan 1970 " + controllerinfo["timestamp"],
                     "DD MMM YYYY HH:mm:ss",
@@ -34,7 +48,7 @@ class Controller:
             else:
                 self.timestamp = pendulum.from_format(
                     "01 Jan 1970 " + controllerinfo["timestamp"],
-                    "DD MMM YYYY HH:mm:ss"
+                    "DD MMM YYYY HH:mm:ss",
                 )
 
     def update_timestamp(self, date):
@@ -51,7 +65,7 @@ class Controller:
         if self.timestampprovided:
             # Hard Case - Get the time from the existing timestamp:
             # Goal Format %d %b %Y %H:%M:%S%z
-            str_time = self.timestamp.format('HH:mm:ssZ')
+            str_time = self.timestamp.format("HH:mm:ssZ")
             # Get the date from the passed in date
             str_date = date.format("DD MMM YYYY")
             # create a tempdate:
