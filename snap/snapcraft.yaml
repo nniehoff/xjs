@@ -24,12 +24,15 @@ parts:
       - requests
       - pendulum
   xjs:
+    override-build: |
+      _XJS_COMPLETE=source ./xjs > xjs.bash-completion
     source: .
     plugin: dump
 
 apps:
   xjs:
     command: xjs
+    completer: xjs.bash-completion
     plugs:
      - home
      - network
