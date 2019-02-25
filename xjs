@@ -68,67 +68,65 @@ def console_print_model_info(color=True):
     """Filter and sort model info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
-    # TODO Handle Optional Color Print
     for controller in controllers:
         console_print_object(print_what=controller.models, color=color)
 
 
-def console_print_application_info(color=True):
+def console_print_application_info(color=True, hide_scale_zero=False):
     """Filter and sort application info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
-    # TODO Handle Optional Color Print
+    # TODO Handle Scale 0
     for controller in controllers:
         for model in controller.models:
             console_print_object(print_what=model.applications, color=color)
 
 
-def console_print_unit_info(color=True):
+def console_print_unit_info(color=True, hide_subordinate_units=False):
     """Filter and sort unit info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
-    # TODO Handle Optional Color Print
-    # TODO Handle If Subordinates
     units = []
     for controller in controllers:
         for model in controller.models:
             for application in model.applications:
                 for unit in application.units:
                     units.append(unit)
-                    for subunit in unit.subordinates:
-                        units.append(subunit)
+                    if hide_subordinate_units:
+                        for subunit in unit.subordinates:
+                            units.append(subunit)
     console_print_object(print_what=units, color=color)
 
 
-def console_print_networkinterface_info(color=True):
+def console_print_networkinterface_info(color=True, include_containers=True):
     """Filter and sort network info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
-    # TODO Handle Optional Color Print
     nics = []
     for controller in controllers:
         for model in controller.models:
             for machine in model.machines:
                 for nic in machine.networkinterfaces:
                     nics.append(nic)
-                for container in machine.containers:
-                    for nic in container.networkinterfaces:
-                        nics.append(nic)
+                if include_containers:
+                    for container in machine.containers:
+                        for nic in container.networkinterfaces:
+                            nics.append(nic)
     console_print_object(print_what=nics, color=color)
 
 
-def console_print_machine_info(color=True):
+def console_print_machine_info(color=True, include_containers=True):
     """Filter and sort machine info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
-    # TODO Handle Optional Color Print
     machines = []
     for controller in controllers:
         for model in controller.models:
             for machine in model.machines:
                 machines.append(machine)
-                for container in machine.containers:
-                    machines.append(container)
+                if include_containers:
+                    for container in machine.containers:
+                        machines.append(container)
     console_print_object(print_what=machines, color=color)
 
 
@@ -250,7 +248,7 @@ def main(
         show_model = True
         include_containers = True
 
-    if not offline:
+    if not offline and show_apps:
         for controller in controllers:
             controller.update_app_version_info()
 
@@ -258,20 +256,16 @@ def main(
         console_print_model_info(color)
         print("")
     if show_apps:
-        # TODO Handle hide_scale_zero
-        console_print_application_info(color)
+        console_print_application_info(color, hide_scale_zero)
         print("")
     if show_units:
-        # TODO Handle hide_subordinate_units
-        console_print_unit_info(color)
+        console_print_unit_info(color, hide_subordinate_units)
         print("")
     if show_machines:
-        # TODO Handle include_containers
-        console_print_machine_info(color)
+        console_print_machine_info(color, include_containers)
         print("")
     if show_net:
-        # TODO Handle include_containers
-        console_print_networkinterface_info(color)
+        console_print_networkinterface_info(color, include_containers)
         print("")
 
 
