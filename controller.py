@@ -30,7 +30,7 @@ class Controller:
         """
         # Default Values
         self.notes = []
-        self.models = []
+        self.models = {}
 
         # Required Variables
         self.timestampprovided = False
@@ -50,6 +50,9 @@ class Controller:
                     "01 Jan 1970 " + controllerinfo["timestamp"],
                     "DD MMM YYYY HH:mm:ss",
                 )
+
+    def __dict__(self):
+        return {self.name: self}
 
     def update_timestamp(self, date):
         """
@@ -80,7 +83,7 @@ class Controller:
 
     def add_model(self, model):
         """Add a model to a controller"""
-        self.models.append(model)
+        self.models[model.name] = model
 
     def update_app_version_info(self):
         """
@@ -90,8 +93,8 @@ class Controller:
         data = {}
 
         # https://api.jujucharms.com/v4/meta/id?id=cs:xenial/hacluster&id=cs:~containers/bionic/easyrsa&id=nick
-        for model in self.models:
-            for app in model.applications:
+        for modelname, model in self.models.items():
+            for appname, app in model.applications.items():
                 if app.charmorigin == "jujucharms":
                     url += "id=" + app.charmid + "&"
 
@@ -100,8 +103,8 @@ class Controller:
         if response.status_code == 200:
             data = response.json()
 
-        for model in self.models:
-            for app in model.applications:
+        for modelname, model in self.models.items():
+            for appname, app in model.applications.items():
                 if app.charmorigin == "jujucharms":
                     if app.charmid in data and "Revision" in data[app.charmid]:
                         app.charmlatestrev = data[app.charmid]["Revision"]

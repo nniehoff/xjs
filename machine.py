@@ -30,7 +30,7 @@ class Machine(BasicMachine):
         BasicMachine.__init__(self, machinename, machineinfo, model.controller)
 
         # Default Values
-        self.containers = []
+        self.containers = {}
         self.constraints = ""
         self.hardware = {}
         self.hardware["arch"] = ""
@@ -58,7 +58,7 @@ class Machine(BasicMachine):
             ].items():
                 container = Container(containername, containerinfo, self)
                 model.add_container(container)
-                self.containers.append(container)
+                self.containers[container.name] = container
 
     # TODO: Shouldn't handle color logic at this level
     def get_row(self, color):

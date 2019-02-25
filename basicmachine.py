@@ -48,7 +48,7 @@ class BasicMachine:
         """
         # Default Values
         self.notes = []
-        self.networkinterfaces = []
+        self.networkinterfaces = {}
 
         # Required Variables
         self.name = name
@@ -88,9 +88,12 @@ class BasicMachine:
             for interfacename, interfaceinfo in info[
                 "network-interfaces"
             ].items():
-                self.networkinterfaces.append(
-                    NetworkInterface(interfacename, interfaceinfo, self)
+                self.networkinterfaces[interfacename] = NetworkInterface(
+                    interfacename, interfaceinfo, self
                 )
+
+    def __dict__(self):
+        return {self.name: self}
 
     def get_jujustatus_color(self):
         """Return a status string with correct colors based on juju status"""

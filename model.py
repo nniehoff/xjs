@@ -43,9 +43,9 @@ class Model:
         """
         # Default Values
         self.notes = []
-        self.applications = []
-        self.machines = []
-        self.containers = []
+        self.applications = {}
+        self.machines = {}
+        self.containers = {}
         self.meterstatus = ""
         self.message = ""
         self.upgradeavailable = ""
@@ -87,21 +87,24 @@ class Model:
     def __lt__(self, other):
         return self.name < other.name
 
+    def __dict__(self):
+        return {self.name: self}
+
     def add_application(self, application):
         """Add an Application to this model"""
-        self.applications.append(application)
+        self.applications[application.name] = application
 
     def add_machine(self, machine):
         """Add a machine to this model"""
-        self.machines.append(machine)
+        self.machines[machine.name] = machine
 
     def add_container(self, container):
         """Add a container to this model"""
-        self.containers.append(container)
+        self.containers[container.name] = container
 
     def get_application(self, appname):
         """Get an Application by name"""
-        for application in self.applications:
+        for appname, application in self.applications.items():
             if application.name == appname:
                 return application
         else:
@@ -109,17 +112,15 @@ class Model:
 
     def get_machine(self, machinename):
         """Get a machine by name"""
-        for machine in self.machines:
-            if machine.name == machinename:
-                return machine
+        if machinename in self.machines:
+            return self.machines[machinename]
         else:
             return None
 
     def get_container(self, containername):
         """Get a container by name"""
-        for container in self.containers:
-            if container.name == containername:
-                return container
+        if containername in self.containers:
+            return self.containers[containername]
         else:
             return None
 

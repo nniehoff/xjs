@@ -41,8 +41,8 @@ class Application:
         """
         # Default Values
         self.notes = []
-        self.units = []
-        self.subordinates = []
+        self.units = {}
+        self.subordinates = {}
         self.version = ""
         self.message = ""
         self.relations = {}
@@ -108,11 +108,14 @@ class Application:
         if "units" in appinfo:
             for unitname, unitinfo in appinfo["units"].items():
                 unit = Unit(unitname, unitinfo, self)
-                self.units.append(unit)
+                self.units[unitname] = unit
+
+    def __dict__(self):
+        return {self.name: self}
 
     def add_subordinate(self, unit):
         """Add a subordinate relationship"""
-        self.subordinates.append(unit)
+        self.subordinates[unit.name] = unit
 
     def get_scale(self):
         """

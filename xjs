@@ -33,7 +33,7 @@ COLOR_YELLOW = "\033[33m"
 UPDATE_THRESHOLD = 300
 
 juju_status = {}
-controllers = []
+controllers = {}
 
 
 def load_status_file(inputfile):
@@ -53,8 +53,9 @@ def load_status_file(inputfile):
         controller = Controller(rawstatus["controller"])
     else:
         controller = Controller()
-    controllers.append(controller)
     model = Model(rawstatus["model"], controller)
+    # TODO: Through exception if controller name already exists
+    controllers[controller.name] = controller
     controller.add_model(model)
     for machname, machinfo in rawstatus["machines"].items():
         machine = Machine(machname, machinfo, model)
@@ -68,8 +69,11 @@ def console_print_model_info(color=True):
     """Filter and sort model info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
-    for controller in controllers:
-        console_print_object(print_what=controller.models, color=color)
+    for controllername, controller in controllers.items():
+        models = []
+        for modelname, model in controller.models.items():
+            models.append(model)
+        console_print_object(print_what=models, color=color)
 
 
 def console_print_application_info(color=True, hide_scale_zero=False):
@@ -77,9 +81,12 @@ def console_print_application_info(color=True, hide_scale_zero=False):
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Scale 0
-    for controller in controllers:
-        for model in controller.models:
-            console_print_object(print_what=model.applications, color=color)
+    for controllername, controller in controllers.items():
+        for modelname, model in controller.models.items():
+            apps = []
+            for appname, app in model.applications.items():
+                apps.append(app)
+            console_print_object(print_what=apps, color=color)
 
 
 def console_print_unit_info(color=True, hide_subordinate_units=False):
@@ -87,13 +94,13 @@ def console_print_unit_info(color=True, hide_subordinate_units=False):
     # TODO Handle Sort
     # TODO Handle Filter
     units = []
-    for controller in controllers:
-        for model in controller.models:
-            for application in model.applications:
-                for unit in application.units:
+    for controllername, controller in controllers.items():
+        for modelname, model in controller.models.items():
+            for appname, application in model.applications.items():
+                for unitname, unit in application.units.items():
                     units.append(unit)
                     if not hide_subordinate_units:
-                        for subunit in unit.subordinates:
+                        for subunitname, subunit in unit.subordinates.items():
                             units.append(subunit)
     console_print_object(print_what=units, color=color)
 
@@ -103,14 +110,17 @@ def console_print_networkinterface_info(color=True, include_containers=True):
     # TODO Handle Sort
     # TODO Handle Filter
     nics = []
-    for controller in controllers:
-        for model in controller.models:
-            for machine in model.machines:
-                for nic in machine.networkinterfaces:
+    for controllername, controller in controllers.items():
+        for modelname, model in controller.models.items():
+            for machinename, machine in model.machines.items():
+                for nicname, nic in machine.networkinterfaces.items():
                     nics.append(nic)
                 if include_containers:
-                    for container in machine.containers:
-                        for nic in container.networkinterfaces:
+                    for containername, container in machine.containers.items():
+                        for (
+                            nicname,
+                            nic,
+                        ) in container.networkinterfaces.items():
                             nics.append(nic)
     console_print_object(print_what=nics, color=color)
 
@@ -120,12 +130,12 @@ def console_print_machine_info(color=True, include_containers=True):
     # TODO Handle Sort
     # TODO Handle Filter
     machines = []
-    for controller in controllers:
-        for model in controller.models:
-            for machine in model.machines:
+    for controllername, controller in controllers.items():
+        for modelname, model in controller.models.items():
+            for machinename, machine in model.machines.items():
                 machines.append(machine)
                 if include_containers:
-                    for container in machine.containers:
+                    for containername, container in machine.containers.items():
                         machines.append(container)
     console_print_object(print_what=machines, color=color)
 
@@ -250,7 +260,7 @@ def main(
 
     if not offline and show_apps:
         for controller in controllers:
-            controller.update_app_version_info()
+            controllers[controller].update_app_version_info()
 
     if show_model:
         console_print_model_info(color)

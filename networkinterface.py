@@ -52,6 +52,9 @@ class NetworkInterface:
         if "gateway" in interfaceinfo:
             self.gateway = interfaceinfo["gateway"]
 
+    def __dict__(self):
+        return {self.name: self}
+
     def get_isup_color(self):
         """Return a is up string with correct colors based on juju status"""
         if self.up:

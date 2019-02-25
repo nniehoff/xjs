@@ -44,7 +44,7 @@ class BasicUnit:
         # Default Values
         self.notes = []
         self.openports = []
-        self.subordinates = []
+        self.subordinates = {}
         self.message = ""
         self.leader = False
 
@@ -84,6 +84,9 @@ class BasicUnit:
             self.openports = info["open-ports"]
         if "leader" in info:
             self.leader = info["leader"]
+
+    def __dict__(self):
+        return {self.name: self}
 
     def get_workloadstatus_color(self):
         """

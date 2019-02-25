@@ -40,8 +40,8 @@ class Unit(BasicUnit):
         # Handle Subordinate Charms if any
         if "subordinates" in unitinfo:
             for subunitname, subunitinfo in unitinfo["subordinates"].items():
-                self.subordinates.append(
-                    SubordinateUnit(subunitname, subunitinfo, self)
+                self.subordinates[unitname] = SubordinateUnit(
+                    subunitname, subunitinfo, self
                 )
 
     def get_row(self, color):
