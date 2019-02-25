@@ -248,7 +248,7 @@ def main(
         show_model = True
         include_containers = True
 
-    if not offline:
+    if not offline and show_apps:
         for controller in controllers:
             controller.update_app_version_info()
 
