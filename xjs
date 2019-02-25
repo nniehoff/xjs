@@ -92,7 +92,7 @@ def console_print_unit_info(color=True, hide_subordinate_units=False):
             for application in model.applications:
                 for unit in application.units:
                     units.append(unit)
-                    if hide_subordinate_units:
+                    if not hide_subordinate_units:
                         for subunit in unit.subordinates:
                             units.append(subunit)
     console_print_object(print_what=units, color=color)
