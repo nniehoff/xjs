@@ -96,9 +96,9 @@ class BasicMachine:
         """Return a status string with correct colors based on juju status"""
         if self.jujustatus == "started":
             return Color.Fg.Green + self.jujustatus + Color.Reset
-        if self.jujustatus in ("error", "down"):
+        elif self.jujustatus in ("error", "down"):
             return Color.Fg.Red + self.jujustatus + Color.Reset
-        if self.jujustatus == "pending":
+        elif self.jujustatus == "pending":
             return Color.Fg.Orange + self.jujustatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.jujustatus + Color.Reset
@@ -109,5 +109,7 @@ class BasicMachine:
         """
         if self.machinestatus == "running":
             return Color.Fg.Green + self.machinestatus + Color.Reset
+        elif self.machinestatus == "pending":
+            return Color.Fg.Orange + self.machinestatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.machinestatus + Color.Reset

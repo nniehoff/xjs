@@ -91,11 +91,11 @@ class BasicUnit:
         """
         if self.workloadstatus == "active":
             return Color.Fg.Green + self.workloadstatus + Color.Reset
-        if self.workloadstatus in ("error", "blocked"):
+        elif self.workloadstatus in ("error", "blocked"):
             return Color.Fg.Red + self.workloadstatus + Color.Reset
-        if self.workloadstatus == "waiting":
+        elif self.workloadstatus == "waiting":
             return self.workloadstatus
-        if self.workloadstatus == "maintenance":
+        elif self.workloadstatus == "maintenance":
             return Color.Fg.Orange + self.workloadstatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.workloadstatus + Color.Reset
@@ -104,7 +104,9 @@ class BasicUnit:
         """Return a status string with correct colors based on juju status"""
         if self.jujustatus in ("idle", "executing"):
             return Color.Fg.Green + self.jujustatus + Color.Reset
-        if self.jujustatus == "error":
+        elif self.jujustatus == "allocating":
+            return Color.Fg.Orange + self.jujustatus + Color.Reset
+        elif self.jujustatus == "error":
             return Color.Fg.Red + self.jujustatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.jujustatus + Color.Reset
