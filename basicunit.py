@@ -117,6 +117,7 @@ class BasicUnit:
     def get_column_names(
         self, include_controller_name=False, include_model_name=False
     ):
+        """Append the controller name and/or model name as necessary"""
         if include_model_name:
             self.column_names.insert(0, "Model")
         if include_controller_name:

@@ -26,7 +26,6 @@ from model import Model
 from prettytable import PrettyTable
 import yaml
 
-juju_status = {}
 controllers = {}
 
 
@@ -234,6 +233,63 @@ def console_print_object(
     print(table)
 
 
+def filter_results(
+    ctrl_filter="",
+    model_filter="",
+    app_filter="",
+    unit_filter="",
+    machine_filter="",
+):
+    """Filter the status"""
+    global controllers
+    filtered_controllers = {}
+
+    # Filter the Controllers
+    if ctrl_filter != "":
+        filtered_controllers = {
+            k: v for (k, v) in controllers.items() if ctrl_filter in k
+        }
+    else:
+        filtered_controllers = controllers
+
+    # Filter the models
+    if model_filter != "":
+        empty_controllers = []
+        for controllername, controller in filtered_controllers.items():
+            controller.models = {
+                k: v
+                for (k, v) in controller.models.items()
+                if model_filter in k
+            }
+            if len(controller.models) == 0:
+                empty_controllers.append(controllername)
+        for controllername in empty_controllers:
+            del filtered_controllers[controllername]
+
+    # Filter the Applications
+    # TODO If applications are filtered also need to filter Machines
+    if app_filter != "":
+        empty_controllers = []
+        for controllername, controller in filtered_controllers.items():
+            empty_models = []
+            for modelname, model in controller.models.items():
+                model.applications = {
+                    k: v
+                    for (k, v) in model.applications.items()
+                    if app_filter in k
+                }
+                if len(model.applications) == 0:
+                    empty_models.append(modelname)
+            for modelname in empty_models:
+                del controller.models[modelname]
+            if len(controller.models) == 0:
+                empty_controllers.append(controllername)
+        for controllername in empty_controllers:
+            del filtered_controllers[controllername]
+
+    controllers = filtered_controllers
+
+
 @click.command()
 @click.option(
     "--application",
@@ -253,6 +309,12 @@ def console_print_object(
     default=False,
     is_flag=True,
     help="Include Container information",
+)
+@click.option(
+    "--machine",
+    default="",
+    help="Show only the machine with the specified name",
+    metavar="<machine name>",
 )
 @click.option(
     "--model",
@@ -347,6 +409,7 @@ def main(
     application,
     unit,
     model,
+    machine,
 ):
     """
     xjs parses a juju status yaml/json and displays the information
@@ -373,6 +436,21 @@ def main(
         show_net = True
         show_model = True
         include_containers = True
+
+    if (
+        controller != ""
+        or model != ""
+        or application != ""
+        or unit != ""
+        or machine != ""
+    ):
+        filter_results(
+            ctrl_filter=controller,
+            model_filter=model,
+            app_filter=application,
+            unit_filter=unit,
+            machine_filter=machine,
+        )
 
     if not offline and show_apps:
         for controller in controllers:

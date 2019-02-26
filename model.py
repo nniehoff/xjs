@@ -204,4 +204,5 @@ class Model:
     def get_column_names(
         self, include_controller_name=True, include_model_name=True
     ):
+        """Append the controller name and/or model name as necessary"""
         return self.column_names
