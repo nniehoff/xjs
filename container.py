@@ -21,15 +21,13 @@ from colors import Color
 class Container(BasicMachine):
     iscontainer = True
 
-    def __init__(self, containername, containerinfo, machine):
+    def __init__(self, containername, containerinfo, machine, model):
         """
         Create a Container object with basic information from a container
         object from a juju status output
         """
         # Setup the BasicMachine
-        BasicMachine.__init__(
-            self, containername, containerinfo, machine.model.controller
-        )
+        BasicMachine.__init__(self, containername, containerinfo, model)
 
         # Required Variables
         self.machine = machine
@@ -43,12 +41,15 @@ class Container(BasicMachine):
         else:
             return Color.Fg.Yellow + self.machinemessage + Color.Reset
 
-    def get_row(self, color):
+    def get_row(
+        self, color, include_controller_name=False, include_model_name=False
+    ):
         """Return a list which can be used for a row in a table."""
+        row = []
         notesstr = ", ".join(self.notes)
 
         if color:
-            return [
+            row = [
                 self.name,
                 self.get_jujustatus_color(),
                 self.get_machinestatus_color(),
@@ -63,7 +64,7 @@ class Container(BasicMachine):
                 notesstr,
             ]
         else:
-            return [
+            row = [
                 self.name,
                 self.jujustatus,
                 self.machinestatus,
@@ -77,3 +78,9 @@ class Container(BasicMachine):
                 self.machinemessage,
                 notesstr,
             ]
+
+        if include_model_name:
+            row.insert(0, self.machine.model.name)
+        if include_controller_name:
+            row.insert(0, self.machine.model.controller.name)
+        return row

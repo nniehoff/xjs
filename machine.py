@@ -27,7 +27,7 @@ class Machine(BasicMachine):
         from a juju status output
         """
         # Setup the BasicMachine
-        BasicMachine.__init__(self, machinename, machineinfo, model.controller)
+        BasicMachine.__init__(self, machinename, machineinfo, model)
 
         # Default Values
         self.containers = {}
@@ -56,17 +56,22 @@ class Machine(BasicMachine):
             for containername, containerinfo in machineinfo[
                 "containers"
             ].items():
-                container = Container(containername, containerinfo, self)
+                container = Container(
+                    containername, containerinfo, self, model
+                )
                 model.add_container(container)
                 self.containers[container.name] = container
 
     # TODO: Shouldn't handle color logic at this level
-    def get_row(self, color):
+    def get_row(
+        self, color, include_controller_name=False, include_model_name=False
+    ):
+        row = []
         """Return a list which can be used for a row in a table."""
         notesstr = ", ".join(self.notes)
 
         if color:
-            return [
+            row = [
                 self.name,
                 self.get_jujustatus_color(),
                 self.get_machinestatus_color(),
@@ -81,7 +86,7 @@ class Machine(BasicMachine):
                 notesstr,
             ]
         else:
-            return [
+            row = [
                 self.name,
                 self.jujustatus,
                 self.machinestatus,
@@ -95,3 +100,9 @@ class Machine(BasicMachine):
                 self.machinemessage,
                 notesstr,
             ]
+
+        if include_model_name:
+            row.insert(0, self.model.name)
+        if include_controller_name:
+            row.insert(0, self.model.controller.name)
+        return row

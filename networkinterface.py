@@ -29,7 +29,7 @@ class NetworkInterface:
         "Notes",
     ]
 
-    def __init__(self, interfacename, interfaceinfo, parent):
+    def __init__(self, interfacename, interfaceinfo, parent, model):
         """
         Create a NetworkInterface object with basic information from a network
         interface object from a juju status output
@@ -45,6 +45,7 @@ class NetworkInterface:
         self.ipaddresses = interfaceinfo["ip-addresses"]
         self.macaddress = interfaceinfo["mac-address"]
         self.up = interfaceinfo["is-up"]
+        self.model = model
 
         # Optional Variables
         if "space" in interfaceinfo:
@@ -62,12 +63,15 @@ class NetworkInterface:
         else:
             return Color.Fg.Red + str(self.up) + Color.Reset
 
-    def get_row(self, color):
+    def get_row(
+        self, color, include_controller_name=False, include_model_name=False
+    ):
         """Return a list which can be used for a row in a table."""
+        row = []
         notesstr = ", ".join(self.notes)
         ipstr = ",".join(self.ipaddresses)
         if color:
-            return [
+            row = [
                 self.parent.name,
                 self.name,
                 ipstr,
@@ -78,7 +82,7 @@ class NetworkInterface:
                 notesstr,
             ]
         else:
-            return [
+            row = [
                 self.parent.name,
                 self.name,
                 ipstr,
@@ -88,3 +92,18 @@ class NetworkInterface:
                 str(self.up),
                 notesstr,
             ]
+
+        if include_model_name:
+            row.insert(0, self.model.name)
+        if include_controller_name:
+            row.insert(0, self.model.controller.name)
+        return row
+
+    def get_column_names(
+        self, include_controller_name=False, include_model_name=False
+    ):
+        if include_model_name:
+            self.column_names.insert(0, "Model")
+        if include_controller_name:
+            self.column_names.insert(0, "Controller")
+        return self.column_names

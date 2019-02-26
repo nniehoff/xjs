@@ -113,3 +113,12 @@ class BasicUnit:
             return Color.Fg.Red + self.jujustatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.jujustatus + Color.Reset
+
+    def get_column_names(
+        self, include_controller_name=False, include_model_name=False
+    ):
+        if include_model_name:
+            self.column_names.insert(0, "Model")
+        if include_controller_name:
+            self.column_names.insert(0, "Controller")
+        return self.column_names

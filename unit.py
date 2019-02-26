@@ -44,8 +44,11 @@ class Unit(BasicUnit):
                     subunitname, subunitinfo, self
                 )
 
-    def get_row(self, color):
+    def get_row(
+        self, color, include_controller_name=False, include_model_name=False
+    ):
         """Return a list which can be used for a row in a table."""
+        row = []
         notesstr = ", ".join(self.notes)
         namestr = self.name
         portsstr = ",".join(self.openports)
@@ -54,7 +57,7 @@ class Unit(BasicUnit):
             namestr += "*"
 
         if color:
-            return [
+            row = [
                 namestr,
                 self.get_workloadstatus_color(),
                 self.get_jujustatus_color(),
@@ -65,7 +68,7 @@ class Unit(BasicUnit):
                 notesstr,
             ]
         else:
-            return [
+            row = [
                 namestr,
                 self.workloadstatus,
                 self.jujustatus,
@@ -75,3 +78,9 @@ class Unit(BasicUnit):
                 self.message,
                 notesstr,
             ]
+
+        if include_model_name:
+            row.insert(0, self.application.model.name)
+        if include_controller_name:
+            row.insert(0, self.application.model.controller.name)
+        return row

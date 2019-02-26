@@ -41,7 +41,7 @@ class BasicMachine:
         "Notes",
     ]
 
-    def __init__(self, name, info, controller):
+    def __init__(self, name, info, model):
         """
         Create a BasicMachine object with basic information from a machine or
         container object from a juju status output
@@ -60,6 +60,7 @@ class BasicMachine:
         self.machinestatus = info["machine-status"]["current"]
         self.machinemessage = info["machine-status"]["message"]
         self.series = info["series"]
+        self.model = model
 
         # Required Dates
         if re.match(r".*Z$", info["juju-status"]["since"]):
@@ -70,7 +71,7 @@ class BasicMachine:
             self.jujusince = pendulum.from_format(
                 info["juju-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
             )
-        controller.update_timestamp(self.jujusince)
+        model.controller.update_timestamp(self.jujusince)
         if re.match(r".*Z$", info["machine-status"]["since"]):
             self.machinesince = pendulum.from_format(
                 info["machine-status"]["since"],
@@ -81,7 +82,7 @@ class BasicMachine:
             self.machinesince = pendulum.from_format(
                 info["machine-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
             )
-        controller.update_timestamp(self.machinesince)
+        model.controller.update_timestamp(self.machinesince)
 
         # Handle Network Interfaces
         if "network-interfaces" in info:
@@ -89,7 +90,7 @@ class BasicMachine:
                 "network-interfaces"
             ].items():
                 self.networkinterfaces[interfacename] = NetworkInterface(
-                    interfacename, interfaceinfo, self
+                    interfacename, interfaceinfo, self, model
                 )
 
     def __dict__(self):
@@ -116,3 +117,12 @@ class BasicMachine:
             return Color.Fg.Orange + self.machinestatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.machinestatus + Color.Reset
+
+    def get_column_names(
+        self, include_controller_name=False, include_model_name=False
+    ):
+        if include_model_name:
+            self.column_names.insert(0, "Model")
+        if include_controller_name:
+            self.column_names.insert(0, "Controller")
+        return self.column_names

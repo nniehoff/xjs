@@ -69,11 +69,11 @@ def console_print_model_info(color=True):
     """Filter and sort model info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
+    models = []
     for controllername, controller in controllers.items():
-        models = []
         for modelname, model in controller.models.items():
             models.append(model)
-        console_print_object(print_what=models, color=color)
+    console_print_object(print_what=models, color=color)
 
 
 def console_print_application_info(color=True, hide_scale_zero=False):
@@ -81,12 +81,28 @@ def console_print_application_info(color=True, hide_scale_zero=False):
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Scale 0
+    apps = []
+    include_controller_name = False
+    include_model_name = False
+
+    if len(controllers) > 1:
+        include_controller_name = True
+        include_model_name = True
     for controllername, controller in controllers.items():
+        if len(controller.models) > 1:
+            include_model_name = True
         for modelname, model in controller.models.items():
-            apps = []
             for appname, app in model.applications.items():
-                apps.append(app)
-            console_print_object(print_what=apps, color=color)
+                if hide_scale_zero and app.get_scale() > 0:
+                    apps.append(app)
+                elif not hide_scale_zero:
+                    apps.append(app)
+    console_print_object(
+        print_what=apps,
+        color=color,
+        include_controller_name=include_controller_name,
+        include_model_name=include_model_name,
+    )
 
 
 def console_print_unit_info(color=True, hide_subordinate_units=False):
@@ -94,7 +110,15 @@ def console_print_unit_info(color=True, hide_subordinate_units=False):
     # TODO Handle Sort
     # TODO Handle Filter
     units = []
+    include_controller_name = False
+    include_model_name = False
+
+    if len(controllers) > 1:
+        include_controller_name = True
+        include_model_name = True
     for controllername, controller in controllers.items():
+        if len(controller.models) > 1:
+            include_model_name = True
         for modelname, model in controller.models.items():
             for appname, application in model.applications.items():
                 for unitname, unit in application.units.items():
@@ -102,7 +126,12 @@ def console_print_unit_info(color=True, hide_subordinate_units=False):
                     if not hide_subordinate_units:
                         for subunitname, subunit in unit.subordinates.items():
                             units.append(subunit)
-    console_print_object(print_what=units, color=color)
+    console_print_object(
+        print_what=units,
+        color=color,
+        include_controller_name=include_controller_name,
+        include_model_name=include_model_name,
+    )
 
 
 def console_print_networkinterface_info(color=True, include_containers=True):
@@ -110,7 +139,15 @@ def console_print_networkinterface_info(color=True, include_containers=True):
     # TODO Handle Sort
     # TODO Handle Filter
     nics = []
+    include_controller_name = False
+    include_model_name = False
+
+    if len(controllers) > 1:
+        include_controller_name = True
+        include_model_name = True
     for controllername, controller in controllers.items():
+        if len(controller.models) > 1:
+            include_model_name = True
         for modelname, model in controller.models.items():
             for machinename, machine in model.machines.items():
                 for nicname, nic in machine.networkinterfaces.items():
@@ -122,7 +159,12 @@ def console_print_networkinterface_info(color=True, include_containers=True):
                             nic,
                         ) in container.networkinterfaces.items():
                             nics.append(nic)
-    console_print_object(print_what=nics, color=color)
+    console_print_object(
+        print_what=nics,
+        color=color,
+        include_controller_name=include_controller_name,
+        include_model_name=include_model_name,
+    )
 
 
 def console_print_machine_info(color=True, include_containers=True):
@@ -130,35 +172,60 @@ def console_print_machine_info(color=True, include_containers=True):
     # TODO Handle Sort
     # TODO Handle Filter
     machines = []
+    include_controller_name = False
+    include_model_name = False
+
+    if len(controllers) > 1:
+        include_controller_name = True
+        include_model_name = True
     for controllername, controller in controllers.items():
+        if len(controller.models) > 1:
+            include_model_name = True
         for modelname, model in controller.models.items():
             for machinename, machine in model.machines.items():
                 machines.append(machine)
                 if include_containers:
                     for containername, container in machine.containers.items():
                         machines.append(container)
-    console_print_object(print_what=machines, color=color)
+    console_print_object(
+        print_what=machines,
+        color=color,
+        include_controller_name=include_controller_name,
+        include_model_name=include_model_name,
+    )
 
 
 # Handle console colors here
-def console_print_object(print_what, color=True):
+def console_print_object(
+    print_what,
+    color=True,
+    include_controller_name=False,
+    include_model_name=False,
+):
     """Print a table formatted for the console"""
     table = PrettyTable()
     # table.set_style(12)
-    table.field_names = print_what[0].column_names
+    table.field_names = print_what[0].get_column_names(
+        include_controller_name, include_model_name
+    )
     for row in print_what:
-        table.add_row(row.get_row(color))
+        table.add_row(
+            row.get_row(color, include_controller_name, include_model_name)
+        )
     table.align = "l"
     print(table)
 
 
 @click.command()
 @click.option(
-    "--show-apps",
-    "-a",
-    default=False,
-    is_flag=True,
-    help="Show application information",
+    "--application",
+    default="",
+    help="Show only the application with the specified name",
+)
+@click.option(
+    "--controller",
+    default="",
+    help="Show only the controller with the specified name",
 )
 @click.option(
     "--include-containers",
@@ -166,6 +233,16 @@ def console_print_object(print_what, color=True):
     default=False,
     is_flag=True,
     help="Include Container information",
+)
+@click.option(
+    "--model", default="", help="Show only the model with the specified name"
+)
+@click.option(
+    "--show-apps",
+    "-a",
+    default=False,
+    is_flag=True,
+    help="Show application information",
 )
 @click.option(
     "--show-model",
@@ -218,6 +295,9 @@ def console_print_object(print_what, color=True):
     is_flag=True,
     help="Don't query jujucharms.com for version information",
 )
+@click.option(
+    "--unit", default="", help="Show only the unit with the specified name"
+)
 @click.argument("statusfiles", required=True, type=click.File("r"), nargs=-1)
 def main(
     statusfiles,
@@ -231,6 +311,10 @@ def main(
     include_containers,
     offline,
     no_color,
+    controller,
+    application,
+    unit,
+    model,
 ):
     """
     xjs parses a juju status yaml/json and displays the information

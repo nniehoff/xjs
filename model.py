@@ -161,7 +161,9 @@ class Model:
         else:
             return Color.Fg.Yellow + self.meterstatus + Color.Reset
 
-    def get_row(self, color):
+    def get_row(
+        self, color, include_controller_name=True, include_model_name=True
+    ):
         """Return a list which can be used for a row in a table."""
         if not self.controller.timestampprovided:
             if color:
@@ -198,3 +200,8 @@ class Model:
                 self.message,
                 notesstr,
             ]
+
+    def get_column_names(
+        self, include_controller_name=True, include_model_name=True
+    ):
+        return self.column_names

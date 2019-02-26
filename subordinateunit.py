@@ -37,8 +37,11 @@ class SubordinateUnit(BasicUnit):
         if application is not None:
             application.add_subordinate(self)
 
-    def get_row(self, color):
+    def get_row(
+        self, color, include_controller_name=False, include_model_name=False
+    ):
         """Return a list which can be used for a row in a table."""
+        row = []
         notesstr = ", ".join(self.notes)
         namestr = "  " + self.name
         portsstr = ",".join(self.openports)
@@ -47,7 +50,7 @@ class SubordinateUnit(BasicUnit):
             namestr += "*"
 
         if color:
-            return [
+            row = [
                 namestr,
                 self.get_workloadstatus_color(),
                 self.get_jujustatus_color(),
@@ -58,7 +61,7 @@ class SubordinateUnit(BasicUnit):
                 notesstr,
             ]
         else:
-            return [
+            row = [
                 namestr,
                 self.workloadstatus,
                 self.jujustatus,
@@ -68,3 +71,9 @@ class SubordinateUnit(BasicUnit):
                 self.message,
                 notesstr,
             ]
+
+        if include_model_name:
+            row.insert(0, self.unit.application.model.name)
+        if include_controller_name:
+            row.insert(0, self.unit.application.model.controller.name)
+        return row

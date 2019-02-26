@@ -170,11 +170,14 @@ class Application:
         else:
             return self.charmorigin
 
-    def get_row(self, color):
+    def get_row(
+        self, color, include_controller_name=False, include_model_name=False
+    ):
         """Return a list which can be used for a row in a table."""
 
+        row = []
         if color:
-            return [
+            row = [
                 self.name,
                 self.version,
                 self.get_status_color(),
@@ -187,7 +190,7 @@ class Application:
                 ", ".join(self.notes),
             ]
         else:
-            return [
+            row = [
                 self.name,
                 self.version,
                 self.status,
@@ -199,3 +202,17 @@ class Application:
                 self.series,
                 ", ".join(self.notes),
             ]
+        if include_model_name:
+            row.insert(0, self.model.name)
+        if include_controller_name:
+            row.insert(0, self.model.controller.name)
+        return row
+
+    def get_column_names(
+        self, include_controller_name=False, include_model_name=False
+    ):
+        if include_model_name:
+            self.column_names.insert(0, "Model")
+        if include_controller_name:
+            self.column_names.insert(0, "Controller")
+        return self.column_names
