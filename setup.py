@@ -16,19 +16,30 @@
 
 import setuptools
 
-requirements = [
-    'PyYAML>=3.13',
-    'prettytable>=0.7.2',
-    'click>=7.0',
-    'packaging>=19.0',
-    'requests>=2.21.0',
-    'pendulum>=2.0.4'
-]
+# requirements = [
+#     'PyYAML>=3.13',
+#     'prettytable>=0.7.2',
+#     'click>=7.0',
+#     'packaging>=19.0',
+#     'requests>=2.21.0',
+#     'pendulum>=2.0.4'
+# ]
 
 setuptools.setup(
     name="xjs",
     version="0.1",
     scripts=[
         "xjs",
+        "application.py",
+        "basicmachine.py",
+        "basicunit.py",
+        "colors.py",
+        "container.py",
+        "controller.py",
+        "machine.py",
+        "model.py",
+        "networkinterface.py",
+        "subordinateunit.py",
+        "unit.py",
     ],
 )

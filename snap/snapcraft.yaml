@@ -14,20 +14,10 @@ confinement: strict
 
 parts:
   xjs:
-    override-build: |
-      touch nickdontgethere
-      pip3 install -r requirements.txt
-      _XJS_COMPLETE=source ./xjs > xjs.bash-completion
     source: .
     plugin: python
     python-version: python3
-    python-packages:
-      - pyyaml
-      - prettytable
-      - click
-      - packaging
-      - requests
-      - pendulum
+    requirements: [ ./requirements.txt ]
 
 apps:
   xjs:
