@@ -17,3 +17,4 @@ script:
   - python3 xjs examples/example2.json > /dev/null
   - python3 xjs examples/example3.yaml > /dev/null
   - python3 xjs examples/example4.yaml > /dev/null
+  - python3 xjs examples/example5.json examples/example6.json > /dev/null
