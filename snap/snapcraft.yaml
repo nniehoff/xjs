@@ -13,7 +13,8 @@ license: GPL-3.0
 confinement: strict
 
 parts:
-  dependencies:
+  xjs:
+    source: .
     plugin: python
     python-version: python3
     python-packages:
@@ -23,8 +24,9 @@ parts:
       - packaging
       - requests
       - pendulum
-  xjs:
+  bash-completion:
     override-build: |
+      touch nickdontgethere
       _XJS_COMPLETE=source ./xjs > xjs.bash-completion
     source: .
     plugin: dump
