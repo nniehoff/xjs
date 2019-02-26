@@ -1,0 +1,30 @@
+#!/bin/bash
+# Snapcraft Build Script
+# Test commands may be appended
+##############################################################################
+#                       SnapCraft VM Setup CMDS
+# git clone git+ssh://katamo@git.launchpad.net/~canonical-support-eng/+git/sftp-scripts
+# cd sftp-scripts/
+# sudo apt update
+# sudo apt install python-pip
+# sudo snap install snapcraft --classic
+#
+##############################################################################
+
+# Define build option [lxd, multipass, host]
+export SNAPCRAFT_BUILD_ENVIRONMENT=host
+
+# Remove previous snap build
+rm ./xjs*amd64.snap
+
+# Build snap with debug enabled & clean build components when done
+snapcraft --debug
+snapcraft clean 
+
+# Install with:
+# sudo snap install supctl_0.1_amd64.snap --devmode --dangerous
+
+# OLD CMDS
+# source testit
+# snapcraft push --release=beta ./supctl_beta2_amd64.snap
+# ln supctl_beta2_amd64.snap ~/sp.snap
