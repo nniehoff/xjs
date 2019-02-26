@@ -19,18 +19,12 @@ import json
 import sys
 from application import Application
 import click
+from colors import Color
 from controller import Controller
 from machine import Machine
 from model import Model
 from prettytable import PrettyTable
 import yaml
-
-COLOR_GREEN = "\033[32m"
-COLOR_ORANGE = "\u001b[31;1m"
-COLOR_RED = "\033[31m"
-COLOR_RESET = "\u001b[0m"
-COLOR_YELLOW = "\033[33m"
-UPDATE_THRESHOLD = 300
 
 juju_status = {}
 controllers = {}
@@ -46,16 +40,38 @@ def load_status_file(inputfile):
         try:
             rawstatus = yaml.safe_load(inputfile)
         except Exception:
-            print(COLOR_RED + "Error trying to load status file" + COLOR_RESET)
+            print(
+                Color.Fg.COLOR_RED
+                + "Error trying to load status file"
+                + Color.Fg.COLOR_RESET
+            )
             sys.exit(1)
 
-    if "controller" in rawstatus:
-        controller = Controller(rawstatus["controller"])
+    controllername = rawstatus["model"]["controller"]
+
+    # If we already have a controller by the same name use it
+    if controllername in controllers:
+        model = Model(rawstatus["model"], controllers[controllername])
+        controller = controllers[controllername]
     else:
-        controller = Controller()
-    model = Model(rawstatus["model"], controller)
-    # TODO: Through exception if controller name already exists
-    controllers[controller.name] = controller
+        # Parse the controller info from this status file
+        if "controller" in rawstatus:
+            controller = Controller(controllername, rawstatus["controller"])
+        else:
+            controller = Controller(controllername)
+        model = Model(rawstatus["model"], controller)
+        controllers[controllername] = controller
+
+    if model.name in controller.models:
+        print(
+            Color.Fg.COLOR_RED
+            + "Error model "
+            + model.name
+            + " already exists for controller "
+            + controllername
+            + Color.Fg.COLOR_RESET
+        )
+        sys.exit(1)
     controller.add_model(model)
     for machname, machinfo in rawstatus["machines"].items():
         machine = Machine(machname, machinfo, model)
@@ -73,7 +89,8 @@ def console_print_model_info(color=True):
     for controllername, controller in controllers.items():
         for modelname, model in controller.models.items():
             models.append(model)
-    console_print_object(print_what=models, color=color)
+    if len(models) > 0:
+        console_print_object(print_what=models, color=color)
 
 
 def console_print_application_info(color=True, hide_scale_zero=False):
@@ -97,12 +114,13 @@ def console_print_application_info(color=True, hide_scale_zero=False):
                     apps.append(app)
                 elif not hide_scale_zero:
                     apps.append(app)
-    console_print_object(
-        print_what=apps,
-        color=color,
-        include_controller_name=include_controller_name,
-        include_model_name=include_model_name,
-    )
+    if len(apps) > 0:
+        console_print_object(
+            print_what=apps,
+            color=color,
+            include_controller_name=include_controller_name,
+            include_model_name=include_model_name,
+        )
 
 
 def console_print_unit_info(color=True, hide_subordinate_units=False):
@@ -126,12 +144,13 @@ def console_print_unit_info(color=True, hide_subordinate_units=False):
                     if not hide_subordinate_units:
                         for subunitname, subunit in unit.subordinates.items():
                             units.append(subunit)
-    console_print_object(
-        print_what=units,
-        color=color,
-        include_controller_name=include_controller_name,
-        include_model_name=include_model_name,
-    )
+    if len(units) > 0:
+        console_print_object(
+            print_what=units,
+            color=color,
+            include_controller_name=include_controller_name,
+            include_model_name=include_model_name,
+        )
 
 
 def console_print_networkinterface_info(color=True, include_containers=True):
@@ -159,12 +178,13 @@ def console_print_networkinterface_info(color=True, include_containers=True):
                             nic,
                         ) in container.networkinterfaces.items():
                             nics.append(nic)
-    console_print_object(
-        print_what=nics,
-        color=color,
-        include_controller_name=include_controller_name,
-        include_model_name=include_model_name,
-    )
+    if len(nics) > 0:
+        console_print_object(
+            print_what=nics,
+            color=color,
+            include_controller_name=include_controller_name,
+            include_model_name=include_model_name,
+        )
 
 
 def console_print_machine_info(color=True, include_containers=True):
@@ -187,12 +207,13 @@ def console_print_machine_info(color=True, include_containers=True):
                 if include_containers:
                     for containername, container in machine.containers.items():
                         machines.append(container)
-    console_print_object(
-        print_what=machines,
-        color=color,
-        include_controller_name=include_controller_name,
-        include_model_name=include_model_name,
-    )
+    if len(machines) > 0:
+        console_print_object(
+            print_what=machines,
+            color=color,
+            include_controller_name=include_controller_name,
+            include_model_name=include_model_name,
+        )
 
 
 # Handle console colors here

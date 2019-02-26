@@ -23,7 +23,7 @@ import requests
 class Controller:
     zerodate = pendulum.from_format("0", "x", tz="UTC")
 
-    def __init__(self, controllerinfo={}):
+    def __init__(self, controllername, controllerinfo={}):
         """
         Create a Controller object with basic information from controller
         object in a juju status output
@@ -31,6 +31,7 @@ class Controller:
         # Default Values
         self.notes = []
         self.models = {}
+        self.name = controllername
 
         # Required Variables
         self.timestampprovided = False
