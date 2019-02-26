@@ -14,6 +14,10 @@ confinement: strict
 
 parts:
   xjs:
+    override-prime: |
+      snapcraftctl prime
+      cd bin
+      _XJS_COMPLETE=source ./xjs > ../xjs.bash-completion || echo "Built Bash Completion"
     source: .
     plugin: python
     python-version: python3
@@ -29,5 +33,3 @@ apps:
     environment:
       LC_ALL: C.UTF-8
       LANG: C.UTF-8
-
-
