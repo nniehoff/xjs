@@ -41,9 +41,7 @@ def load_status_file(inputfile):
             rawstatus = yaml.safe_load(inputfile)
         except Exception:
             print(
-                Color.Fg.Red
-                + "Error trying to load status file"
-                + Color.Reset
+                Color.Fg.Red + "Error trying to load status file" + Color.Reset
             )
             sys.exit(1)
 
@@ -241,11 +239,13 @@ def console_print_object(
     "--application",
     default="",
     help="Show only the application with the specified name",
+    metavar="<application name>",
 )
 @click.option(
     "--controller",
     default="",
     help="Show only the controller with the specified name",
+    metavar="<controller name>",
 )
 @click.option(
     "--include-containers",
@@ -255,7 +255,10 @@ def console_print_object(
     help="Include Container information",
 )
 @click.option(
-    "--model", default="", help="Show only the model with the specified name"
+    "--model",
+    default="",
+    help="Show only the model with the specified name",
+    metavar="<model name>",
 )
 @click.option(
     "--show-apps",
@@ -316,9 +319,18 @@ def console_print_object(
     help="Don't query jujucharms.com for version information",
 )
 @click.option(
-    "--unit", default="", help="Show only the unit with the specified name"
+    "--unit",
+    default="",
+    help="Show only the unit with the specified name",
+    metavar="<unit name>",
 )
-@click.argument("statusfiles", required=True, type=click.File("r"), nargs=-1)
+@click.argument(
+    "statusfiles",
+    required=True,
+    type=click.File("r"),
+    nargs=-1,
+    metavar="<status files>",
+)
 def main(
     statusfiles,
     hide_scale_zero,
