@@ -41,9 +41,9 @@ def load_status_file(inputfile):
             rawstatus = yaml.safe_load(inputfile)
         except Exception:
             print(
-                Color.Fg.COLOR_RED
+                Color.Fg.Red
                 + "Error trying to load status file"
-                + Color.Fg.COLOR_RESET
+                + Color.Reset
             )
             sys.exit(1)
 
@@ -51,7 +51,6 @@ def load_status_file(inputfile):
 
     # If we already have a controller by the same name use it
     if controllername in controllers:
-        model = Model(rawstatus["model"], controllers[controllername])
         controller = controllers[controllername]
     else:
         # Parse the controller info from this status file
@@ -59,17 +58,17 @@ def load_status_file(inputfile):
             controller = Controller(controllername, rawstatus["controller"])
         else:
             controller = Controller(controllername)
-        model = Model(rawstatus["model"], controller)
         controllers[controllername] = controller
 
+    model = Model(rawstatus["model"], controller)
     if model.name in controller.models:
         print(
-            Color.Fg.COLOR_RED
+            Color.Fg.Red
             + "Error model "
             + model.name
             + " already exists for controller "
             + controllername
-            + Color.Fg.COLOR_RESET
+            + Color.Reset
         )
         sys.exit(1)
     controller.add_model(model)
