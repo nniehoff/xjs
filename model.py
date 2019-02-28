@@ -43,9 +43,9 @@ class Model:
         """
         # Default Values
         self.notes = []
-        self.applications = []
-        self.machines = []
-        self.containers = []
+        self.applications = {}
+        self.machines = {}
+        self.containers = {}
         self.meterstatus = ""
         self.message = ""
         self.upgradeavailable = ""
@@ -87,39 +87,40 @@ class Model:
     def __lt__(self, other):
         return self.name < other.name
 
+    def __dict__(self):
+        return {self.name: self}
+
     def add_application(self, application):
         """Add an Application to this model"""
-        self.applications.append(application)
+        self.applications[application.name] = application
 
     def add_machine(self, machine):
         """Add a machine to this model"""
-        self.machines.append(machine)
+        self.machines[machine.name] = machine
 
     def add_container(self, container):
         """Add a container to this model"""
-        self.containers.append(container)
+        self.containers[container.name] = container
 
-    def get_application(self, appname):
+    def get_application(self, searchappname):
         """Get an Application by name"""
-        for application in self.applications:
-            if application.name == appname:
+        for appname, application in self.applications.items():
+            if appname == searchappname:
                 return application
         else:
             return None
 
     def get_machine(self, machinename):
         """Get a machine by name"""
-        for machine in self.machines:
-            if machine.name == machinename:
-                return machine
+        if machinename in self.machines:
+            return self.machines[machinename]
         else:
             return None
 
     def get_container(self, containername):
         """Get a container by name"""
-        for container in self.containers:
-            if container.name == containername:
-                return container
+        if containername in self.containers:
+            return self.containers[containername]
         else:
             return None
 
@@ -160,7 +161,9 @@ class Model:
         else:
             return Color.Fg.Yellow + self.meterstatus + Color.Reset
 
-    def get_row(self, color):
+    def get_row(
+        self, color, include_controller_name=True, include_model_name=True
+    ):
         """Return a list which can be used for a row in a table."""
         if not self.controller.timestampprovided:
             if color:
@@ -197,3 +200,31 @@ class Model:
                 self.message,
                 notesstr,
             ]
+
+    def get_column_names(
+        self, include_controller_name=True, include_model_name=True
+    ):
+        """Append the controller name and/or model name as necessary"""
+        return self.column_names
+
+    def filter_dictionary(self, dictionary, key_filter):
+        return {
+            key: value
+            for (key, value) in dictionary.items()
+            if key_filter in key
+        }
+
+    def filter_applications(self, app_filter):
+        self.applications = self.filter_dictionary(
+            self.applications, app_filter
+        )
+        self.reset_machines()
+
+    def reset_machines(self):
+        machines = {}
+        for appname, appinfo in self.applications.items():
+            for unitname, unitinfo in appinfo.units.items():
+                machines[unitinfo.machine.name] = unitinfo.machine
+            for subunitname, subunitinfo in appinfo.subordinates.items():
+                machines[subunitinfo.machine.name] = subunitinfo.machine
+        self.machines = machines

@@ -41,14 +41,14 @@ class BasicMachine:
         "Notes",
     ]
 
-    def __init__(self, name, info, controller):
+    def __init__(self, name, info, model):
         """
         Create a BasicMachine object with basic information from a machine or
         container object from a juju status output
         """
         # Default Values
         self.notes = []
-        self.networkinterfaces = []
+        self.networkinterfaces = {}
 
         # Required Variables
         self.name = name
@@ -60,6 +60,7 @@ class BasicMachine:
         self.machinestatus = info["machine-status"]["current"]
         self.machinemessage = info["machine-status"]["message"]
         self.series = info["series"]
+        self.model = model
 
         # Required Dates
         if re.match(r".*Z$", info["juju-status"]["since"]):
@@ -70,7 +71,7 @@ class BasicMachine:
             self.jujusince = pendulum.from_format(
                 info["juju-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
             )
-        controller.update_timestamp(self.jujusince)
+        model.controller.update_timestamp(self.jujusince)
         if re.match(r".*Z$", info["machine-status"]["since"]):
             self.machinesince = pendulum.from_format(
                 info["machine-status"]["since"],
@@ -81,24 +82,27 @@ class BasicMachine:
             self.machinesince = pendulum.from_format(
                 info["machine-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
             )
-        controller.update_timestamp(self.machinesince)
+        model.controller.update_timestamp(self.machinesince)
 
         # Handle Network Interfaces
         if "network-interfaces" in info:
             for interfacename, interfaceinfo in info[
                 "network-interfaces"
             ].items():
-                self.networkinterfaces.append(
-                    NetworkInterface(interfacename, interfaceinfo, self)
+                self.networkinterfaces[interfacename] = NetworkInterface(
+                    interfacename, interfaceinfo, self, model
                 )
+
+    def __dict__(self):
+        return {self.name: self}
 
     def get_jujustatus_color(self):
         """Return a status string with correct colors based on juju status"""
         if self.jujustatus == "started":
             return Color.Fg.Green + self.jujustatus + Color.Reset
-        if self.jujustatus in ("error", "down"):
+        elif self.jujustatus in ("error", "down"):
             return Color.Fg.Red + self.jujustatus + Color.Reset
-        if self.jujustatus == "pending":
+        elif self.jujustatus == "pending":
             return Color.Fg.Orange + self.jujustatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.jujustatus + Color.Reset
@@ -109,5 +113,17 @@ class BasicMachine:
         """
         if self.machinestatus == "running":
             return Color.Fg.Green + self.machinestatus + Color.Reset
+        elif self.machinestatus == "pending":
+            return Color.Fg.Orange + self.machinestatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.machinestatus + Color.Reset
+
+    def get_column_names(
+        self, include_controller_name=False, include_model_name=False
+    ):
+        """Append the controller name and/or model name as necessary"""
+        if include_model_name:
+            self.column_names.insert(0, "Model")
+        if include_controller_name:
+            self.column_names.insert(0, "Controller")
+        return self.column_names

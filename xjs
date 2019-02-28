@@ -19,21 +19,14 @@ import json
 import sys
 from application import Application
 import click
+from colors import Color
 from controller import Controller
 from machine import Machine
 from model import Model
 from prettytable import PrettyTable
 import yaml
 
-COLOR_GREEN = "\033[32m"
-COLOR_ORANGE = "\u001b[31;1m"
-COLOR_RED = "\033[31m"
-COLOR_RESET = "\u001b[0m"
-COLOR_YELLOW = "\033[33m"
-UPDATE_THRESHOLD = 300
-
-juju_status = {}
-controllers = []
+controllers = {}
 
 
 def load_status_file(inputfile):
@@ -46,15 +39,35 @@ def load_status_file(inputfile):
         try:
             rawstatus = yaml.safe_load(inputfile)
         except Exception:
-            print(COLOR_RED + "Error trying to load status file" + COLOR_RESET)
+            print(
+                Color.Fg.Red + "Error trying to load status file" + Color.Reset
+            )
             sys.exit(1)
 
-    if "controller" in rawstatus:
-        controller = Controller(rawstatus["controller"])
+    controllername = rawstatus["model"]["controller"]
+
+    # If we already have a controller by the same name use it
+    if controllername in controllers:
+        controller = controllers[controllername]
     else:
-        controller = Controller()
-    controllers.append(controller)
+        # Parse the controller info from this status file
+        if "controller" in rawstatus:
+            controller = Controller(controllername, rawstatus["controller"])
+        else:
+            controller = Controller(controllername)
+        controllers[controllername] = controller
+
     model = Model(rawstatus["model"], controller)
+    if model.name in controller.models:
+        print(
+            Color.Fg.Red
+            + "Error model "
+            + model.name
+            + " already exists for controller "
+            + controllername
+            + Color.Reset
+        )
+        sys.exit(1)
     controller.add_model(model)
     for machname, machinfo in rawstatus["machines"].items():
         machine = Machine(machname, machinfo, model)
@@ -68,8 +81,12 @@ def console_print_model_info(color=True):
     """Filter and sort model info to print in a table here"""
     # TODO Handle Sort
     # TODO Handle Filter
-    for controller in controllers:
-        console_print_object(print_what=controller.models, color=color)
+    models = []
+    for controllername, controller in controllers.items():
+        for modelname, model in controller.models.items():
+            models.append(model)
+    if len(models) > 0:
+        console_print_object(print_what=models, color=color)
 
 
 def console_print_application_info(color=True, hide_scale_zero=False):
@@ -77,9 +94,29 @@ def console_print_application_info(color=True, hide_scale_zero=False):
     # TODO Handle Sort
     # TODO Handle Filter
     # TODO Handle Scale 0
-    for controller in controllers:
-        for model in controller.models:
-            console_print_object(print_what=model.applications, color=color)
+    apps = []
+    include_controller_name = False
+    include_model_name = False
+
+    if len(controllers) > 1:
+        include_controller_name = True
+        include_model_name = True
+    for controllername, controller in controllers.items():
+        if len(controller.models) > 1:
+            include_model_name = True
+        for modelname, model in controller.models.items():
+            for appname, app in model.applications.items():
+                if hide_scale_zero and app.get_scale() > 0:
+                    apps.append(app)
+                elif not hide_scale_zero:
+                    apps.append(app)
+    if len(apps) > 0:
+        console_print_object(
+            print_what=apps,
+            color=color,
+            include_controller_name=include_controller_name,
+            include_model_name=include_model_name,
+        )
 
 
 def console_print_unit_info(color=True, hide_subordinate_units=False):
@@ -87,15 +124,35 @@ def console_print_unit_info(color=True, hide_subordinate_units=False):
     # TODO Handle Sort
     # TODO Handle Filter
     units = []
-    for controller in controllers:
-        for model in controller.models:
-            for application in model.applications:
-                for unit in application.units:
+    include_controller_name = False
+    include_model_name = False
+
+    if len(controllers) > 1:
+        include_controller_name = True
+        include_model_name = True
+    for controllername, controller in controllers.items():
+        if len(controller.models) > 1:
+            include_model_name = True
+        for modelname, model in controller.models.items():
+            for appname, application in model.applications.items():
+                for unitname, unit in application.units.items():
                     units.append(unit)
-                    if hide_subordinate_units:
-                        for subunit in unit.subordinates:
+                    if not hide_subordinate_units:
+                        for subunitname, subunit in unit.subordinates.items():
                             units.append(subunit)
-    console_print_object(print_what=units, color=color)
+                if not hide_subordinate_units and len(application.units) == 0:
+                    for (
+                        subunitname,
+                        subunit,
+                    ) in application.subordinates.items():
+                        units.append(subunit)
+    if len(units) > 0:
+        console_print_object(
+            print_what=units,
+            color=color,
+            include_controller_name=include_controller_name,
+            include_model_name=include_model_name,
+        )
 
 
 def console_print_networkinterface_info(color=True, include_containers=True):
@@ -103,16 +160,33 @@ def console_print_networkinterface_info(color=True, include_containers=True):
     # TODO Handle Sort
     # TODO Handle Filter
     nics = []
-    for controller in controllers:
-        for model in controller.models:
-            for machine in model.machines:
-                for nic in machine.networkinterfaces:
+    include_controller_name = False
+    include_model_name = False
+
+    if len(controllers) > 1:
+        include_controller_name = True
+        include_model_name = True
+    for controllername, controller in controllers.items():
+        if len(controller.models) > 1:
+            include_model_name = True
+        for modelname, model in controller.models.items():
+            for machinename, machine in model.machines.items():
+                for nicname, nic in machine.networkinterfaces.items():
                     nics.append(nic)
                 if include_containers:
-                    for container in machine.containers:
-                        for nic in container.networkinterfaces:
+                    for containername, container in machine.containers.items():
+                        for (
+                            nicname,
+                            nic,
+                        ) in container.networkinterfaces.items():
                             nics.append(nic)
-    console_print_object(print_what=nics, color=color)
+    if len(nics) > 0:
+        console_print_object(
+            print_what=nics,
+            color=color,
+            include_controller_name=include_controller_name,
+            include_model_name=include_model_name,
+        )
 
 
 def console_print_machine_info(color=True, include_containers=True):
@@ -120,49 +194,139 @@ def console_print_machine_info(color=True, include_containers=True):
     # TODO Handle Sort
     # TODO Handle Filter
     machines = []
-    for controller in controllers:
-        for model in controller.models:
-            for machine in model.machines:
+    include_controller_name = False
+    include_model_name = False
+
+    if len(controllers) > 1:
+        include_controller_name = True
+        include_model_name = True
+    for controllername, controller in controllers.items():
+        if len(controller.models) > 1:
+            include_model_name = True
+        for modelname, model in controller.models.items():
+            for machinename, machine in model.machines.items():
                 machines.append(machine)
                 if include_containers:
-                    for container in machine.containers:
+                    for containername, container in machine.containers.items():
                         machines.append(container)
-    console_print_object(print_what=machines, color=color)
+    if len(machines) > 0:
+        console_print_object(
+            print_what=machines,
+            color=color,
+            include_controller_name=include_controller_name,
+            include_model_name=include_model_name,
+        )
 
 
 # Handle console colors here
-def console_print_object(print_what, color=True):
+def console_print_object(
+    print_what,
+    color=True,
+    include_controller_name=False,
+    include_model_name=False,
+):
     """Print a table formatted for the console"""
     table = PrettyTable()
     # table.set_style(12)
-    table.field_names = print_what[0].column_names
+    table.field_names = print_what[0].get_column_names(
+        include_controller_name, include_model_name
+    )
     for row in print_what:
-        table.add_row(row.get_row(color))
+        table.add_row(
+            row.get_row(color, include_controller_name, include_model_name)
+        )
     table.align = "l"
     print(table)
 
 
+def filter_dictionary(dictionary, key_filter):
+    return {
+        key: value for (key, value) in dictionary.items() if key_filter in key
+    }
+
+
+def filter_results(
+    ctrl_filter="",
+    model_filter="",
+    app_filter="",
+    unit_filter="",
+    subunit_filter="",
+    machine_filter="",
+):
+    """Filter the status"""
+    global controllers
+    filtered_controllers = {}
+
+    # Filter the Controllers
+    if ctrl_filter != "":
+        filtered_controllers = filter_dictionary(controllers, ctrl_filter)
+    else:
+        filtered_controllers = controllers
+
+    # Filter the models
+    if model_filter != "":
+        empty_controllers = []
+        for controllername, controller in filtered_controllers.items():
+            controller.filter_models(model_filter)
+            if len(controller.models) == 0:
+                empty_controllers.append(controllername)
+        for controllername in empty_controllers:
+            del filtered_controllers[controllername]
+
+    # Filter the Applications
+    if app_filter != "":
+        empty_controllers = []
+        for controllername, controller in filtered_controllers.items():
+            empty_models = []
+            for modelname, model in controller.models.items():
+                model.filter_applications(app_filter)
+                if len(model.applications) == 0:
+                    empty_models.append(modelname)
+            for modelname in empty_models:
+                del controller.models[modelname]
+            if len(controller.models) == 0:
+                empty_controllers.append(controllername)
+        for controllername in empty_controllers:
+            del filtered_controllers[controllername]
+
+    # Filter the Units
+    if unit_filter != "":
+        empty_controllers = []
+        for controllername, controller in filtered_controllers.items():
+            empty_models = []
+            for modelname, model in controller.models.items():
+                empty_applications = []
+                for appname, application in model.applications.items():
+                    application.filter_units(unit_filter)
+                    if len(application.units) == 0:
+                        empty_applications.append(appname)
+                for appname in empty_applications:
+                    del model.applications[appname]
+                model.reset_machines()
+                if len(model.applications) == 0:
+                    empty_models.append(modelname)
+            for modelname in empty_models:
+                del controller.models[modelname]
+            if len(controller.models) == 0:
+                empty_controllers.append(controllername)
+        for controllername in empty_controllers:
+            del filtered_controllers[controllername]
+
+    controllers = filtered_controllers
+
+
 @click.command()
 @click.option(
-    "--show-apps",
-    "-a",
-    default=False,
-    is_flag=True,
-    help="Show application information",
+    "--application",
+    default="",
+    help="Show only the application with the specified name",
+    metavar="<application name>",
 )
 @click.option(
-    "--include-containers",
-    "-c",
-    default=False,
-    is_flag=True,
-    help="Include Container information",
-)
-@click.option(
-    "--show-model",
-    "-d",
-    default=False,
-    is_flag=True,
-    help="Show model information",
+    "--controller",
+    default="",
+    help="Show only the controller with the specified name",
+    metavar="<controller name>",
 )
 @click.option(
     "--hide-scale-zero",
@@ -172,20 +336,6 @@ def console_print_object(print_what, color=True):
     help="Hide applications with a scale of 0",
 )
 @click.option(
-    "--show-machines",
-    "-m",
-    default=False,
-    is_flag=True,
-    help="Show machine information",
-)
-@click.option(
-    "--show-net",
-    "-n",
-    default=False,
-    is_flag=True,
-    help="Show network interface information",
-)
-@click.option(
     "--hide-subordinate-units",
     "-s",
     default=False,
@@ -193,11 +343,23 @@ def console_print_object(print_what, color=True):
     help="Hide subordinate units",
 )
 @click.option(
-    "--show-units",
-    "-u",
+    "--include-containers",
+    "-c",
     default=False,
     is_flag=True,
-    help="Show unit information",
+    help="Include Container information",
+)
+@click.option(
+    "--machine",
+    default="",
+    help="Show only the machine with the specified name",
+    metavar="<machine name>",
+)
+@click.option(
+    "--model",
+    default="",
+    help="Show only the model with the specified name",
+    metavar="<model name>",
 )
 @click.option(
     "--no-color", default=False, is_flag=True, help="Remove color from output"
@@ -208,7 +370,60 @@ def console_print_object(print_what, color=True):
     is_flag=True,
     help="Don't query jujucharms.com for version information",
 )
-@click.argument("statusfiles", required=True, type=click.File("r"), nargs=-1)
+@click.option(
+    "--show-apps",
+    "-a",
+    default=False,
+    is_flag=True,
+    help="Show application information",
+)
+@click.option(
+    "--show-machines",
+    "-m",
+    default=False,
+    is_flag=True,
+    help="Show machine information",
+)
+@click.option(
+    "--show-model",
+    "-d",
+    default=False,
+    is_flag=True,
+    help="Show model information",
+)
+@click.option(
+    "--show-net",
+    "-n",
+    default=False,
+    is_flag=True,
+    help="Show network interface information",
+)
+@click.option(
+    "--show-units",
+    "-u",
+    default=False,
+    is_flag=True,
+    help="Show unit information",
+)
+@click.option(
+    "--subordinate",
+    default="",
+    help="Show only the subordinate unit with the specified name",
+    metavar="<subordinate name>",
+)
+@click.option(
+    "--unit",
+    default="",
+    help="Show only the unit with the specified name",
+    metavar="<unit name>",
+)
+@click.argument(
+    "statusfiles",
+    required=True,
+    type=click.File("r"),
+    nargs=-1,
+    metavar="<status files>",
+)
 def main(
     statusfiles,
     hide_scale_zero,
@@ -221,6 +436,12 @@ def main(
     include_containers,
     offline,
     no_color,
+    controller,
+    application,
+    unit,
+    model,
+    machine,
+    subordinate,
 ):
     """
     xjs parses a juju status yaml/json and displays the information
@@ -248,9 +469,25 @@ def main(
         show_model = True
         include_containers = True
 
+    if (
+        controller != ""
+        or model != ""
+        or application != ""
+        or unit != ""
+        or machine != ""
+    ):
+        filter_results(
+            ctrl_filter=controller,
+            model_filter=model,
+            app_filter=application,
+            unit_filter=unit,
+            subunit_filter=subordinate,
+            machine_filter=machine,
+        )
+
     if not offline and show_apps:
         for controller in controllers:
-            controller.update_app_version_info()
+            controllers[controller].update_app_version_info()
 
     if show_model:
         console_print_model_info(color)

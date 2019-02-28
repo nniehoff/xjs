@@ -41,8 +41,8 @@ class Application:
         """
         # Default Values
         self.notes = []
-        self.units = []
-        self.subordinates = []
+        self.units = {}
+        self.subordinates = {}
         self.version = ""
         self.message = ""
         self.relations = {}
@@ -108,11 +108,14 @@ class Application:
         if "units" in appinfo:
             for unitname, unitinfo in appinfo["units"].items():
                 unit = Unit(unitname, unitinfo, self)
-                self.units.append(unit)
+                self.units[unitname] = unit
 
-    def add_subordinate(self, unit):
+    def __dict__(self):
+        return {self.name: self}
+
+    def add_subordinate(self, subunit):
         """Add a subordinate relationship"""
-        self.subordinates.append(unit)
+        self.subordinates[subunit.name] = subunit
 
     def get_scale(self):
         """
@@ -155,7 +158,6 @@ class Application:
         elif self.charmrev == self.charmlatestrev:
             return Color.Fg.Green + str(self.charmrev) + Color.Reset
         else:
-            self.notes.append("Using Unstable Version of Charm")
             return Color.Fg.Red + str(self.charmrev) + Color.Reset
 
     def get_charmorigin_color(self):
@@ -167,11 +169,14 @@ class Application:
         else:
             return self.charmorigin
 
-    def get_row(self, color):
+    def get_row(
+        self, color, include_controller_name=False, include_model_name=False
+    ):
         """Return a list which can be used for a row in a table."""
 
+        row = []
         if color:
-            return [
+            row = [
                 self.name,
                 self.version,
                 self.get_status_color(),
@@ -184,7 +189,7 @@ class Application:
                 ", ".join(self.notes),
             ]
         else:
-            return [
+            row = [
                 self.name,
                 self.version,
                 self.status,
@@ -196,3 +201,28 @@ class Application:
                 self.series,
                 ", ".join(self.notes),
             ]
+        if include_model_name:
+            row.insert(0, self.model.name)
+        if include_controller_name:
+            row.insert(0, self.model.controller.name)
+        return row
+
+    def get_column_names(
+        self, include_controller_name=False, include_model_name=False
+    ):
+        """Append the controller name and/or model name as necessary"""
+        if include_model_name:
+            self.column_names.insert(0, "Model")
+        if include_controller_name:
+            self.column_names.insert(0, "Controller")
+        return self.column_names
+
+    def filter_dictionary(self, dictionary, key_filter):
+        return {
+            key: value
+            for (key, value) in dictionary.items()
+            if key_filter in key
+        }
+
+    def filter_units(self, unit_filter):
+        self.units = self.filter_dictionary(self.units, unit_filter)

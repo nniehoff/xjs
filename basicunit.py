@@ -44,7 +44,7 @@ class BasicUnit:
         # Default Values
         self.notes = []
         self.openports = []
-        self.subordinates = []
+        self.subordinates = {}
         self.message = ""
         self.leader = False
 
@@ -85,17 +85,20 @@ class BasicUnit:
         if "leader" in info:
             self.leader = info["leader"]
 
+    def __dict__(self):
+        return {self.name: self}
+
     def get_workloadstatus_color(self):
         """
         Return a status string with correct colors based on workload status
         """
         if self.workloadstatus == "active":
             return Color.Fg.Green + self.workloadstatus + Color.Reset
-        if self.workloadstatus in ("error", "blocked"):
+        elif self.workloadstatus in ("error", "blocked"):
             return Color.Fg.Red + self.workloadstatus + Color.Reset
-        if self.workloadstatus == "waiting":
+        elif self.workloadstatus == "waiting":
             return self.workloadstatus
-        if self.workloadstatus == "maintenance":
+        elif self.workloadstatus == "maintenance":
             return Color.Fg.Orange + self.workloadstatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.workloadstatus + Color.Reset
@@ -104,7 +107,19 @@ class BasicUnit:
         """Return a status string with correct colors based on juju status"""
         if self.jujustatus in ("idle", "executing"):
             return Color.Fg.Green + self.jujustatus + Color.Reset
-        if self.jujustatus == "error":
+        elif self.jujustatus == "allocating":
+            return Color.Fg.Orange + self.jujustatus + Color.Reset
+        elif self.jujustatus == "error":
             return Color.Fg.Red + self.jujustatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.jujustatus + Color.Reset
+
+    def get_column_names(
+        self, include_controller_name=False, include_model_name=False
+    ):
+        """Append the controller name and/or model name as necessary"""
+        if include_model_name:
+            self.column_names.insert(0, "Model")
+        if include_controller_name:
+            self.column_names.insert(0, "Controller")
+        return self.column_names

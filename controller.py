@@ -23,14 +23,15 @@ import requests
 class Controller:
     zerodate = pendulum.from_format("0", "x", tz="UTC")
 
-    def __init__(self, controllerinfo={}):
+    def __init__(self, controllername, controllerinfo={}):
         """
         Create a Controller object with basic information from controller
         object in a juju status output
         """
         # Default Values
         self.notes = []
-        self.models = []
+        self.models = {}
+        self.name = controllername
 
         # Required Variables
         self.timestampprovided = False
@@ -50,6 +51,9 @@ class Controller:
                     "01 Jan 1970 " + controllerinfo["timestamp"],
                     "DD MMM YYYY HH:mm:ss",
                 )
+
+    def __dict__(self):
+        return {self.name: self}
 
     def update_timestamp(self, date):
         """
@@ -80,7 +84,7 @@ class Controller:
 
     def add_model(self, model):
         """Add a model to a controller"""
-        self.models.append(model)
+        self.models[model.name] = model
 
     def update_app_version_info(self):
         """
@@ -89,9 +93,8 @@ class Controller:
         url = "https://api.jujucharms.com/v4/meta/id?"
         data = {}
 
-        # https://api.jujucharms.com/v4/meta/id?id=cs:xenial/hacluster&id=cs:~containers/bionic/easyrsa&id=nick
-        for model in self.models:
-            for app in model.applications:
+        for modelname, model in self.models.items():
+            for appname, app in model.applications.items():
                 if app.charmorigin == "jujucharms":
                     url += "id=" + app.charmid + "&"
 
@@ -100,8 +103,8 @@ class Controller:
         if response.status_code == 200:
             data = response.json()
 
-        for model in self.models:
-            for app in model.applications:
+        for modelname, model in self.models.items():
+            for appname, app in model.applications.items():
                 if app.charmorigin == "jujucharms":
                     if app.charmid in data and "Revision" in data[app.charmid]:
                         app.charmlatestrev = data[app.charmid]["Revision"]
@@ -111,3 +114,13 @@ class Controller:
                             )
                         elif app.charmrev > app.charmlatestrev:
                             app.notes.append("Using Non-Stable Rev")
+
+    def filter_dictionary(self, dictionary, key_filter):
+        return {
+            key: value
+            for (key, value) in dictionary.items()
+            if key_filter in key
+        }
+
+    def filter_models(self, model_filter):
+        self.models = self.filter_dictionary(self.models, model_filter)

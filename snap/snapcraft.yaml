@@ -13,28 +13,23 @@ license: GPL-3.0
 confinement: strict
 
 parts:
-  dependencies:
+  xjs:
+    override-prime: |
+      snapcraftctl prime
+      cd bin
+      _XJS_COMPLETE=source ./xjs > ../xjs.bash-completion || echo "Built Bash Completion"
+    source: .
     plugin: python
     python-version: python3
-    python-packages:
-      - pyyaml
-      - prettytable
-      - click
-      - packaging
-      - requests
-      - pendulum
-  xjs:
-    source: .
-    plugin: dump
+    requirements: [ ./requirements.txt ]
 
 apps:
   xjs:
     command: xjs
+    completer: xjs.bash-completion
     plugs:
      - home
      - network
     environment:
       LC_ALL: C.UTF-8
       LANG: C.UTF-8
-
-
