@@ -102,10 +102,10 @@ class Model:
         """Add a container to this model"""
         self.containers[container.name] = container
 
-    def get_application(self, appname):
+    def get_application(self, searchappname):
         """Get an Application by name"""
         for appname, application in self.applications.items():
-            if application.name == appname:
+            if appname == searchappname:
                 return application
         else:
             return None
@@ -206,3 +206,25 @@ class Model:
     ):
         """Append the controller name and/or model name as necessary"""
         return self.column_names
+
+    def filter_dictionary(self, dictionary, key_filter):
+        return {
+            key: value
+            for (key, value) in dictionary.items()
+            if key_filter in key
+        }
+
+    def filter_applications(self, app_filter):
+        self.applications = self.filter_dictionary(
+            self.applications, app_filter
+        )
+        self.reset_machines()
+
+    def reset_machines(self):
+        machines = {}
+        for appname, appinfo in self.applications.items():
+            for unitname, unitinfo in appinfo.units.items():
+                machines[unitinfo.machine.name] = unitinfo.machine
+            for subunitname, subunitinfo in appinfo.subordinates.items():
+                machines[subunitinfo.machine.name] = subunitinfo.machine
+        self.machines = machines

@@ -32,10 +32,12 @@ class SubordinateUnit(BasicUnit):
         # Required Variables
         self.unit = unit
         self.upgradingfrom = subunitinfo["upgrading-from"]
-        appname = re.sub(r"\/\d+$", "", subunitname)
-        application = unit.application.model.get_application(appname)
-        if application is not None:
-            application.add_subordinate(self)
+        self.machine = unit.machine
+        # appname = re.sub(r"\/\d+$", "", subunitname)
+        # TODO: BUG Application might not exist yet in model
+        # application = unit.application.model.get_application(appname)
+        # if application is not None:
+        #     application.add_subordinate(self)
 
     def get_row(
         self, color, include_controller_name=False, include_model_name=False

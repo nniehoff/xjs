@@ -140,6 +140,12 @@ def console_print_unit_info(color=True, hide_subordinate_units=False):
                     if not hide_subordinate_units:
                         for subunitname, subunit in unit.subordinates.items():
                             units.append(subunit)
+                if not hide_subordinate_units and len(application.units) == 0:
+                    for (
+                        subunitname,
+                        subunit,
+                    ) in application.subordinates.items():
+                        units.append(subunit)
     if len(units) > 0:
         console_print_object(
             print_what=units,
@@ -233,11 +239,18 @@ def console_print_object(
     print(table)
 
 
+def filter_dictionary(dictionary, key_filter):
+    return {
+        key: value for (key, value) in dictionary.items() if key_filter in key
+    }
+
+
 def filter_results(
     ctrl_filter="",
     model_filter="",
     app_filter="",
     unit_filter="",
+    subunit_filter="",
     machine_filter="",
 ):
     """Filter the status"""
@@ -246,9 +259,7 @@ def filter_results(
 
     # Filter the Controllers
     if ctrl_filter != "":
-        filtered_controllers = {
-            k: v for (k, v) in controllers.items() if ctrl_filter in k
-        }
+        filtered_controllers = filter_dictionary(controllers, ctrl_filter)
     else:
         filtered_controllers = controllers
 
@@ -256,28 +267,42 @@ def filter_results(
     if model_filter != "":
         empty_controllers = []
         for controllername, controller in filtered_controllers.items():
-            controller.models = {
-                k: v
-                for (k, v) in controller.models.items()
-                if model_filter in k
-            }
+            controller.filter_models(model_filter)
             if len(controller.models) == 0:
                 empty_controllers.append(controllername)
         for controllername in empty_controllers:
             del filtered_controllers[controllername]
 
     # Filter the Applications
-    # TODO If applications are filtered also need to filter Machines
     if app_filter != "":
         empty_controllers = []
         for controllername, controller in filtered_controllers.items():
             empty_models = []
             for modelname, model in controller.models.items():
-                model.applications = {
-                    k: v
-                    for (k, v) in model.applications.items()
-                    if app_filter in k
-                }
+                model.filter_applications(app_filter)
+                if len(model.applications) == 0:
+                    empty_models.append(modelname)
+            for modelname in empty_models:
+                del controller.models[modelname]
+            if len(controller.models) == 0:
+                empty_controllers.append(controllername)
+        for controllername in empty_controllers:
+            del filtered_controllers[controllername]
+
+    # Filter the Units
+    if unit_filter != "":
+        empty_controllers = []
+        for controllername, controller in filtered_controllers.items():
+            empty_models = []
+            for modelname, model in controller.models.items():
+                empty_applications = []
+                for appname, application in model.applications.items():
+                    application.filter_units(unit_filter)
+                    if len(application.units) == 0:
+                        empty_applications.append(appname)
+                for appname in empty_applications:
+                    del model.applications[appname]
+                model.reset_machines()
                 if len(model.applications) == 0:
                     empty_models.append(modelname)
             for modelname in empty_models:
@@ -304,6 +329,20 @@ def filter_results(
     metavar="<controller name>",
 )
 @click.option(
+    "--hide-scale-zero",
+    "-h",
+    default=False,
+    is_flag=True,
+    help="Hide applications with a scale of 0",
+)
+@click.option(
+    "--hide-subordinate-units",
+    "-s",
+    default=False,
+    is_flag=True,
+    help="Hide subordinate units",
+)
+@click.option(
     "--include-containers",
     "-c",
     default=False,
@@ -323,25 +362,20 @@ def filter_results(
     metavar="<model name>",
 )
 @click.option(
+    "--no-color", default=False, is_flag=True, help="Remove color from output"
+)
+@click.option(
+    "--offline",
+    default=False,
+    is_flag=True,
+    help="Don't query jujucharms.com for version information",
+)
+@click.option(
     "--show-apps",
     "-a",
     default=False,
     is_flag=True,
     help="Show application information",
-)
-@click.option(
-    "--show-model",
-    "-d",
-    default=False,
-    is_flag=True,
-    help="Show model information",
-)
-@click.option(
-    "--hide-scale-zero",
-    "-h",
-    default=False,
-    is_flag=True,
-    help="Hide applications with a scale of 0",
 )
 @click.option(
     "--show-machines",
@@ -351,18 +385,18 @@ def filter_results(
     help="Show machine information",
 )
 @click.option(
+    "--show-model",
+    "-d",
+    default=False,
+    is_flag=True,
+    help="Show model information",
+)
+@click.option(
     "--show-net",
     "-n",
     default=False,
     is_flag=True,
     help="Show network interface information",
-)
-@click.option(
-    "--hide-subordinate-units",
-    "-s",
-    default=False,
-    is_flag=True,
-    help="Hide subordinate units",
 )
 @click.option(
     "--show-units",
@@ -372,13 +406,10 @@ def filter_results(
     help="Show unit information",
 )
 @click.option(
-    "--no-color", default=False, is_flag=True, help="Remove color from output"
-)
-@click.option(
-    "--offline",
-    default=False,
-    is_flag=True,
-    help="Don't query jujucharms.com for version information",
+    "--subordinate",
+    default="",
+    help="Show only the subordinate unit with the specified name",
+    metavar="<subordinate name>",
 )
 @click.option(
     "--unit",
@@ -410,6 +441,7 @@ def main(
     unit,
     model,
     machine,
+    subordinate,
 ):
     """
     xjs parses a juju status yaml/json and displays the information
@@ -449,6 +481,7 @@ def main(
             model_filter=model,
             app_filter=application,
             unit_filter=unit,
+            subunit_filter=subordinate,
             machine_filter=machine,
         )
 

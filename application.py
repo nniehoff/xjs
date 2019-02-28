@@ -113,9 +113,9 @@ class Application:
     def __dict__(self):
         return {self.name: self}
 
-    def add_subordinate(self, unit):
+    def add_subordinate(self, subunit):
         """Add a subordinate relationship"""
-        self.subordinates[unit.name] = unit
+        self.subordinates[subunit.name] = subunit
 
     def get_scale(self):
         """
@@ -158,7 +158,6 @@ class Application:
         elif self.charmrev == self.charmlatestrev:
             return Color.Fg.Green + str(self.charmrev) + Color.Reset
         else:
-            self.notes.append("Using Unstable Version of Charm")
             return Color.Fg.Red + str(self.charmrev) + Color.Reset
 
     def get_charmorigin_color(self):
@@ -211,8 +210,19 @@ class Application:
     def get_column_names(
         self, include_controller_name=False, include_model_name=False
     ):
+        """Append the controller name and/or model name as necessary"""
         if include_model_name:
             self.column_names.insert(0, "Model")
         if include_controller_name:
             self.column_names.insert(0, "Controller")
         return self.column_names
+
+    def filter_dictionary(self, dictionary, key_filter):
+        return {
+            key: value
+            for (key, value) in dictionary.items()
+            if key_filter in key
+        }
+
+    def filter_units(self, unit_filter):
+        self.units = self.filter_dictionary(self.units, unit_filter)

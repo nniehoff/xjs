@@ -40,7 +40,7 @@ class Unit(BasicUnit):
         # Handle Subordinate Charms if any
         if "subordinates" in unitinfo:
             for subunitname, subunitinfo in unitinfo["subordinates"].items():
-                self.subordinates[unitname] = SubordinateUnit(
+                self.subordinates[subunitname] = SubordinateUnit(
                     subunitname, subunitinfo, self
                 )
 
