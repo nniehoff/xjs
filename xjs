@@ -44,7 +44,16 @@ def load_status_file(inputfile):
             )
             sys.exit(1)
 
-    controllername = rawstatus["model"]["controller"]
+    if "model" not in rawstatus and "services" in rawstatus:
+        # Juju v1 File
+        controllername = "controller"
+        modelkey = "environment-status"
+        applicationkey = "services"
+    else:
+        # Juju v2 File
+        controllername = rawstatus["model"]["controller"]
+        modelkey = "model"
+        applicationkey = "applications"
 
     # If we already have a controller by the same name use it
     if controllername in controllers:
@@ -57,7 +66,7 @@ def load_status_file(inputfile):
             controller = Controller(controllername)
         controllers[controllername] = controller
 
-    model = Model(rawstatus["model"], controller)
+    model = Model(rawstatus[modelkey], controller)
     if model.name in controller.models:
         print(
             Color.Fg.Red
@@ -72,9 +81,16 @@ def load_status_file(inputfile):
     for machname, machinfo in rawstatus["machines"].items():
         machine = Machine(machname, machinfo, model)
         model.add_machine(machine)
-    for appname, appinfo in rawstatus["applications"].items():
+    for appname, appinfo in rawstatus[applicationkey].items():
         application = Application(appname, appinfo, model)
         model.add_application(application)
+    # There is a race conditions with subordinate units, they may exist
+    # before the parent application does so create all of the apps first
+    # then create the relationship to the parent application
+    for appname, appinfo in model.applications.items():
+        for unitname, unit in appinfo.units.items():
+            for subunitname, subunit in unit.subordinates.items():
+                subunit.create_application_relation()
 
 
 def console_print_model_info(color=True):
@@ -140,12 +156,15 @@ def console_print_unit_info(color=True, hide_subordinate_units=False):
                     if not hide_subordinate_units:
                         for subunitname, subunit in unit.subordinates.items():
                             units.append(subunit)
-                if not hide_subordinate_units and len(application.units) == 0:
-                    for (
-                        subunitname,
-                        subunit,
-                    ) in application.subordinates.items():
-                        units.append(subunit)
+    # Bad logic, if an application has 0 units it might only be
+    #  a subordinate app and not filtered
+    # if not hide_subordinate_units and len(application.units) == 0:
+    #     for (
+    #         subunitname,
+    #         subunit,
+    #     ) in application.subordinates.items():
+    #         print("Nick " + application.name + " " + subunit.name)
+    #         units.append(subunit)
     if len(units) > 0:
         console_print_object(
             print_what=units,

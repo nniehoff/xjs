@@ -53,30 +53,84 @@ class Application:
         self.name = appname
         self.model = model
         self.charm = appinfo["charm"]
-        self.series = appinfo["series"]
-        self.os = appinfo["os"]
-        self.charmorigin = appinfo["charm-origin"]
-        self.charmname = appinfo["charm-name"]
-        self.charmrev = int(appinfo["charm-rev"])
+        if "series" in appinfo:
+            self.series = appinfo["series"]
+        else:
+            self.series = "NA"
+
+        if "os" in appinfo:
+            self.os = appinfo["os"]
+        else:
+            self.os = "NA"
+
+        isv1 = False
+        if "charm-origin" in appinfo:
+            self.charmorigin = appinfo["charm-origin"]
+        else:
+            self.charmorigin = "NA"
+            isv1 = True
+
+        if "charm-name" in appinfo:
+            self.charmname = appinfo["charm-name"]
+        else:
+            self.charmname = "NA"
+            isv1 = True
+
+        if "charm-rev" in appinfo:
+            self.charmrev = int(appinfo["charm-rev"])
+        else:
+            self.charmrev = -1
+            isv1 = True
+
+        # Handle v1 Charm info:
+        if isv1:
+            match = re.match(r"(.*):(.*)-(\d+)", self.charm)
+            if match:
+                charmsource = match.group(1)
+                if charmsource == "cs":
+                    self.charmorigin = "jujucharms"
+                else:
+                    self.charmorigin = match.group(1)
+                self.charmname = match.group(2)
+                self.charmrev = int(match.group(3))
+                seriesmatch = re.match(
+                    r"^(~[^/]+/)*([^/]+)/[^/]+", match.group(2)
+                )
+                if seriesmatch:
+                    self.series = seriesmatch.group(2)
+
         self.exposed = appinfo["exposed"]
-        self.status = appinfo["application-status"]["current"]
+
+        if "application-status" in appinfo:
+            statuskey = "application-status"
+        elif "service-status" in appinfo:
+            statuskey = "service-status"
+        else:
+            statuskey = "none"
+
+        if statuskey in appinfo and "current" in appinfo[statuskey]:
+            self.status = appinfo[statuskey]["current"]
+        else:
+            self.status = "NA"
 
         # Required Dates
-        if re.match(r".*Z$", appinfo["application-status"]["since"]):
-            self.since = pendulum.from_format(
-                appinfo["application-status"]["since"],
-                "DD MMM YYYY HH:mm:ss",
-                tz="UTC",
-            )
-        else:
-            self.since = pendulum.from_format(
-                appinfo["application-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
-            )
-        model.controller.update_timestamp(self.since)
+
+        if statuskey in appinfo and "since" in appinfo[statuskey]:
+            if re.match(r".*Z$", appinfo[statuskey]["since"]):
+                self.since = pendulum.from_format(
+                    appinfo[statuskey]["since"],
+                    "DD MMM YYYY HH:mm:ss",
+                    tz="UTC",
+                )
+            else:
+                self.since = pendulum.from_format(
+                    appinfo[statuskey]["since"], "DD MMM YYYY HH:mm:ssZ"
+                )
+            model.controller.update_timestamp(self.since)
 
         # Optional Variables
-        if "message" in appinfo["application-status"]:
-            self.message = appinfo["application-status"]["message"]
+        if "message" in appinfo[statuskey]:
+            self.message = appinfo[statuskey]["message"]
         if "version" in appinfo:
             self.version = appinfo["version"]
         if "relations" in appinfo:
@@ -92,10 +146,10 @@ class Application:
         if self.exposed:
             self.notes.append("exposed")
         self.charmid = ""
-        match = re.match(r"(cs:~.*)\/(.*)-\d+$", self.charm)
+        match = re.match(r"(cs:~[^/]+)\/([^/]+/)*([^/]+)-\d+$", self.charm)
         if match:
             self.charmid = (
-                match.group(1) + "/" + self.series + "/" + match.group(2)
+                match.group(1) + "/" + self.series + "/" + match.group(3)
             )
         else:
             match = re.match(r"cs:(.*)-\d+$", self.charm)

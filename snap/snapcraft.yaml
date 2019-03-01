@@ -26,7 +26,6 @@ parts:
 apps:
   xjs:
     command: xjs
-    completer: xjs.bash-completion
     plugs:
      - home
      - network
