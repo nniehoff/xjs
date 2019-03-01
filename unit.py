@@ -32,7 +32,8 @@ class Unit(BasicUnit):
 
         # Required Variables
         self.application = application
-        if re.match(r"\d+\/lxd\/(\d+)$", unitinfo["machine"]):
+        match = re.match(r"(\d+)\/(lx[cd]|kvm)\/(\d+)$", unitinfo["machine"])
+        if match:
             self.machine = application.model.get_container(unitinfo["machine"])
         else:
             self.machine = application.model.get_machine(unitinfo["machine"])

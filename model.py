@@ -36,7 +36,7 @@ class Model:
         "Notes",
     ]
 
-    def __init__(self, modelinfo, controller):
+    def __init__(self, modelinfo, controller, juju1env=None):
         """
         Create a Model object with basic information from a model object
         from a juju status output
@@ -51,27 +51,55 @@ class Model:
         self.upgradeavailable = ""
 
         # Required Variables
-        self.name = modelinfo["name"]
-        self.type = modelinfo["type"]
+        if "name" in modelinfo:
+            self.name = modelinfo["name"]
+        else:
+            self.name = "NA"
+
+        if "type" in modelinfo:
+            self.type = modelinfo["type"]
+        else:
+            self.type = "NA"
         self.controller = controller
-        self.controller.name = modelinfo["controller"]
-        self.cloud = modelinfo["cloud"]
-        self.version = modelinfo["version"]
-        self.modelstatus = modelinfo["model-status"]["current"]
-        self.sla = modelinfo["sla"]
+
+        if "controller" in modelinfo:
+            self.controller.name = modelinfo["controller"]
+
+        if "cloud" in modelinfo:
+            self.cloud = modelinfo["cloud"]
+        elif juju1env:
+            self.cloud = juju1env
+        else:
+            self.cloud = "NA"
+
+        if "version" in modelinfo:
+            self.version = modelinfo["version"]
+        else:
+            self.version = "1.x.x"
+
+        if "model-status" in modelinfo:
+            self.modelstatus = modelinfo["model-status"]["current"]
+        else:
+            self.modelstatus = "NA"
+
+        if "sla" in modelinfo:
+            self.sla = modelinfo["sla"]
+        else:
+            self.sla = "NA"
 
         # Required Dates
-        if re.match(r".*Z$", modelinfo["model-status"]["since"]):
-            self.since = pendulum.from_format(
-                modelinfo["model-status"]["since"],
-                "DD MMM YYYY HH:mm:ss",
-                tz="UTC",
-            )
-        else:
-            self.since = pendulum.from_format(
-                modelinfo["model-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
-            )
-        controller.update_timestamp(self.since)
+        if "model-status" in modelinfo:
+            if re.match(r".*Z$", modelinfo["model-status"]["since"]):
+                self.since = pendulum.from_format(
+                    modelinfo["model-status"]["since"],
+                    "DD MMM YYYY HH:mm:ss",
+                    tz="UTC",
+                )
+            else:
+                self.since = pendulum.from_format(
+                    modelinfo["model-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+                )
+            controller.update_timestamp(self.since)
 
         # Optional Variables
         if "meter-status" in modelinfo:
@@ -222,9 +250,27 @@ class Model:
 
     def reset_machines(self):
         machines = {}
+        containers = {}
         for appname, appinfo in self.applications.items():
             for unitname, unitinfo in appinfo.units.items():
-                machines[unitinfo.machine.name] = unitinfo.machine
+                if unitinfo.machine.iscontainer:
+                    containers[unitinfo.machine.name] = unitinfo.machine
+                    machines[
+                        unitinfo.machine.machine.name
+                    ] = unitinfo.machine.machine
+                else:
+                    machines[unitinfo.machine.name] = unitinfo.machine
             for subunitname, subunitinfo in appinfo.subordinates.items():
-                machines[subunitinfo.machine.name] = subunitinfo.machine
+                if subunitinfo.machine.iscontainer:
+                    containers[subunitinfo.machine.name] = subunitinfo.machine
+                    machines[
+                        subunitinfo.machine.machine.name
+                    ] = subunitinfo.machine.machine
+                else:
+                    machines[subunitinfo.machine.name] = subunitinfo.machine
+        for machinename, machine in machines.items():
+            oldcontainers = machine.containers.keys() - containers.keys()
+            for containername in oldcontainers:
+                del machine.containers[containername]
         self.machines = machines
+        self.containers = containers

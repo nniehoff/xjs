@@ -52,37 +52,55 @@ class BasicMachine:
 
         # Required Variables
         self.name = name
-        self.jujustatus = info["juju-status"]["current"]
-        self.jujuversion = info["juju-status"]["version"]
+        if "juju-status" in info:
+            self.jujustatus = info["juju-status"]["current"]
+            if "version" in info["juju-status"]:
+                self.jujuversion = info["juju-status"]["version"]
+            else:
+                self.jujuversion = "NA"
+        else:
+            self.jujustatus = info["agent-state"]
+            self.jujuversion = info["agent-version"]
         self.dnsname = info["dns-name"]
-        self.ipaddresses = info["ip-addresses"]
+        if "ipaddresses" in info:
+            self.ipaddresses = info["ip-addresses"]
+        else:
+            self.ipaddresses = "NA"
         self.instanceid = info["instance-id"]
-        self.machinestatus = info["machine-status"]["current"]
-        self.machinemessage = info["machine-status"]["message"]
+        if "machine-status" in info:
+            self.machinestatus = info["machine-status"]["current"]
+            self.machinemessage = info["machine-status"]["message"]
+        else:
+            self.machinestatus = "NA"
+            self.machinemessage = ""
         self.series = info["series"]
         self.model = model
 
         # Required Dates
-        if re.match(r".*Z$", info["juju-status"]["since"]):
-            self.jujusince = pendulum.from_format(
-                info["juju-status"]["since"], "DD MMM YYYY HH:mm:ss", tz="UTC"
-            )
-        else:
-            self.jujusince = pendulum.from_format(
-                info["juju-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
-            )
-        model.controller.update_timestamp(self.jujusince)
-        if re.match(r".*Z$", info["machine-status"]["since"]):
-            self.machinesince = pendulum.from_format(
-                info["machine-status"]["since"],
-                "DD MMM YYYY HH:mm:ss",
-                tz="UTC",
-            )
-        else:
-            self.machinesince = pendulum.from_format(
-                info["machine-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
-            )
-        model.controller.update_timestamp(self.machinesince)
+        if "juju-status" in info:
+            if re.match(r".*Z$", info["juju-status"]["since"]):
+                self.jujusince = pendulum.from_format(
+                    info["juju-status"]["since"],
+                    "DD MMM YYYY HH:mm:ss",
+                    tz="UTC",
+                )
+            else:
+                self.jujusince = pendulum.from_format(
+                    info["juju-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+                )
+            model.controller.update_timestamp(self.jujusince)
+        if "machine-status" in info:
+            if re.match(r".*Z$", info["machine-status"]["since"]):
+                self.machinesince = pendulum.from_format(
+                    info["machine-status"]["since"],
+                    "DD MMM YYYY HH:mm:ss",
+                    tz="UTC",
+                )
+            else:
+                self.machinesince = pendulum.from_format(
+                    info["machine-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+                )
+            model.controller.update_timestamp(self.machinesince)
 
         # Handle Network Interfaces
         if "network-interfaces" in info:

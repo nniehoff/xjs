@@ -51,8 +51,14 @@ class BasicUnit:
         # Required Variables
         self.name = name
         self.workloadstatus = info["workload-status"]["current"]
-        self.jujustatus = info["juju-status"]["current"]
-        self.jujuversion = info["juju-status"]["version"]
+        if "juju-status" in info:
+            statuskey = "juju-status"
+        elif "agent-status" in info:
+            statuskey = "agent-status"
+        else:
+            statuskey = "none"
+        self.jujustatus = info[statuskey]["current"]
+        self.jujuversion = info[statuskey]["version"]
         self.publicaddress = info["public-address"]
 
         # Required Dates
@@ -67,13 +73,13 @@ class BasicUnit:
                 info["workload-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
             )
         controller.update_timestamp(self.workloadsince)
-        if re.match(r".*Z$", info["juju-status"]["since"]):
+        if re.match(r".*Z$", info[statuskey]["since"]):
             self.jujusince = pendulum.from_format(
-                info["juju-status"]["since"], "DD MMM YYYY HH:mm:ss", tz="UTC"
+                info[statuskey]["since"], "DD MMM YYYY HH:mm:ss", tz="UTC"
             )
         else:
             self.jujusince = pendulum.from_format(
-                info["juju-status"]["since"], "DD MMM YYYY HH:mm:ssZ"
+                info[statuskey]["since"], "DD MMM YYYY HH:mm:ssZ"
             )
         controller.update_timestamp(self.jujusince)
 
@@ -109,7 +115,7 @@ class BasicUnit:
             return Color.Fg.Green + self.jujustatus + Color.Reset
         elif self.jujustatus == "allocating":
             return Color.Fg.Orange + self.jujustatus + Color.Reset
-        elif self.jujustatus == "error":
+        elif self.jujustatus in ("error", "lost", "failed"):
             return Color.Fg.Red + self.jujustatus + Color.Reset
         else:
             return Color.Fg.Yellow + self.jujustatus + Color.Reset
