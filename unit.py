@@ -20,6 +20,8 @@ from subordinateunit import SubordinateUnit
 
 
 class Unit(BasicUnit):
+    issubordinate = False
+
     def __init__(self, unitname, unitinfo, application):
         """
         Create a Unit object with basic information from a unit object from a
@@ -85,3 +87,15 @@ class Unit(BasicUnit):
         if include_controller_name:
             row.insert(0, self.application.model.controller.name)
         return row
+
+    def filter_dictionary(self, dictionary, key_filter):
+        return {
+            key: value
+            for (key, value) in dictionary.items()
+            if key_filter in key
+        }
+
+    def filter_subordinates(self, subunit_filter):
+        self.subordinates = self.filter_dictionary(
+            self.subordinates, subunit_filter
+        )

@@ -15,7 +15,13 @@ script:
   - "pycodestyle xjs"
   - "flake8 xjs"
   - python3 xjs examples/example1.json > /dev/null
-  - python3 xjs examples/example2.json > /dev/null
-  - python3 xjs examples/example3.yaml > /dev/null
-  - python3 xjs examples/example4.yaml > /dev/null
-  - python3 xjs examples/example5.json examples/example6.json > /dev/null
+  - python3 xjs --offline examples/example2.json > /dev/null
+  - python3 xjs --offline examples/example3.yaml > /dev/null
+  - python3 xjs --offline examples/example4.yaml > /dev/null
+  - python3 xjs --offline examples/example5.json examples/example6.json > /dev/null
+  - python3 xjs --offline --application openstack-dashboard examples/example1.json > /dev/null
+  - python3 xjs --offline --application filebeat examples/example1.json > /dev/null
+  - python3 xjs --offline --model k8s-tigera examples/example5.json examples/example6.json > /dev/null
+  - python3 xjs --offline --controller nniehoff examples/example5.json examples/example6.json > /dev/null
+  - python3 xjs --offline --unit kubernetes-master/0 examples/example5.json examples/example6.json > /dev/null
+  - python3 xjs --offline --subordinate flannel/2 examples/example5.json examples/example6.json > /dev/
