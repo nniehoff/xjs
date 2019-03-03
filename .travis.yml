@@ -24,4 +24,4 @@ script:
   - python3 xjs --offline --model k8s-tigera examples/example5.json examples/example6.json > /dev/null
   - python3 xjs --offline --controller nniehoff examples/example5.json examples/example6.json > /dev/null
   - python3 xjs --offline --unit kubernetes-master/0 examples/example5.json examples/example6.json > /dev/null
-  - python3 xjs --offline --subordinate flannel/2 examples/example5.json examples/example6.json > /dev/
+  - python3 xjs --offline --subordinate flannel/2 examples/example5.json examples/example6.json > /dev/null
