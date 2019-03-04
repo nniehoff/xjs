@@ -109,12 +109,6 @@ class Model:
             self.upgradeavailable = modelinfo["upgrade-available"]
             self.notes.append("upgrade available: " + self.upgradeavailable)
 
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __lt__(self, other):
-        return self.name < other.name
-
     def __dict__(self):
         return {self.name: self}
 
@@ -135,8 +129,7 @@ class Model:
         for appname, application in self.applications.items():
             if appname == searchappname:
                 return application
-        else:
-            return None
+        return None
 
     def get_machine(self, machinename):
         """Get a machine by name"""
@@ -243,9 +236,14 @@ class Model:
         }
 
     def filter_applications(self, app_filter):
-        self.applications = self.filter_dictionary(
-            self.applications, app_filter
-        )
+        apps = self.filter_dictionary(self.applications, app_filter)
+        parent_apps = {}
+        for appname, appinfo in apps.items():
+            for subname, subinfo in appinfo.subordinates.items():
+                parent_apps[
+                    subinfo.unit.application.name
+                ] = subinfo.unit.application
+        self.applications = {**apps, **parent_apps}
         self.reset_machines()
 
     def reset_machines(self):

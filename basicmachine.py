@@ -133,6 +133,8 @@ class BasicMachine:
             return Color.Fg.Green + self.machinestatus + Color.Reset
         elif self.machinestatus == "pending":
             return Color.Fg.Orange + self.machinestatus + Color.Reset
+        elif self.machinestatus == "NA":
+            return self.machinestatus
         else:
             return Color.Fg.Yellow + self.machinestatus + Color.Reset
 

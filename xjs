@@ -69,12 +69,9 @@ def load_status_file(inputfile):
     model = Model(rawstatus[modelkey], controller)
     if model.name in controller.models:
         print(
-            Color.Fg.Red
-            + "Error model "
-            + model.name
-            + " already exists for controller "
-            + controllername
-            + Color.Reset
+            "{}Error model {} already exists for controller {}{}".format(
+                Color.Fg.Red, model.name, controllername, Color.Reset
+            )
         )
         sys.exit(1)
     controller.add_model(model)
@@ -331,6 +328,35 @@ def filter_results(
         for controllername in empty_controllers:
             del filtered_controllers[controllername]
 
+    # Filter the subordinate units
+    if subunit_filter != "":
+        empty_controllers = []
+        for controllername, controller in filtered_controllers.items():
+            empty_models = []
+            for modelname, model in controller.models.items():
+                empty_applications = []
+                for appname, application in model.applications.items():
+                    empty_units = []
+                    for unitname, unit in application.units.items():
+                        unit.filter_subordinates(subunit_filter)
+                        if len(unit.subordinates) == 0:
+                            empty_units.append(unitname)
+                    for unitname in empty_units:
+                        del application.units[unitname]
+                    if len(application.units) == 0:
+                        empty_applications.append(appname)
+                for appname in empty_applications:
+                    del model.applications[appname]
+                model.reset_machines()
+                if len(model.applications) == 0:
+                    empty_models.append(modelname)
+            for modelname in empty_models:
+                del controller.models[modelname]
+            if len(controller.models) == 0:
+                empty_controllers.append(controllername)
+        for controllername in empty_controllers:
+            del filtered_controllers[controllername]
+
     controllers = filtered_controllers
 
 
@@ -494,6 +520,7 @@ def main(
         or application != ""
         or unit != ""
         or machine != ""
+        or subordinate != ""
     ):
         filter_results(
             ctrl_filter=controller,
