@@ -47,9 +47,10 @@ class Machine(BasicMachine):
             self.constraints = machineinfo["constraints"]
 
         # Calculated Values
-        for hardwarepair in machineinfo["hardware"].split(" "):
-            key, value = hardwarepair.split("=")
-            self.hardware[key] = value
+        if "hardware" in machineinfo:
+            for hardwarepair in machineinfo["hardware"].split(" "):
+                key, value = hardwarepair.split("=")
+                self.hardware[key] = value
 
         # Handle Containers if any
         if "containers" in machineinfo:

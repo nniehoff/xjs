@@ -58,8 +58,12 @@ class BasicUnit:
         else:
             statuskey = "none"
         self.jujustatus = info[statuskey]["current"]
-        self.jujuversion = info[statuskey]["version"]
-        self.publicaddress = info["public-address"]
+        if "version" in info[statuskey]:
+            self.jujuversion = info[statuskey]["version"]
+        if "public-address" in info:
+            self.publicaddress = info["public-address"]
+        else:
+            self.publicaddress = "PENDING"
 
         # Required Dates
         if re.match(r".*Z$", info["workload-status"]["since"]):
