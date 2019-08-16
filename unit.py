@@ -34,11 +34,14 @@ class Unit(BasicUnit):
 
         # Required Variables
         self.application = application
-        match = re.match(r"(\d+)\/(lx[cd]|kvm)\/(\d+)$", unitinfo["machine"])
-        if match:
-            self.machine = application.model.get_container(unitinfo["machine"])
+        if "machine" in unitinfo:
+            match = re.match(r"(\d+)\/(lx[cd]|kvm)\/(\d+)$", unitinfo["machine"])
+            if match:
+                self.machine = application.model.get_container(unitinfo["machine"])
+            else:
+                self.machine = application.model.get_machine(unitinfo["machine"])
         else:
-            self.machine = application.model.get_machine(unitinfo["machine"])
+            self.machine = None
 
         # Handle Subordinate Charms if any
         if "subordinates" in unitinfo:
@@ -55,6 +58,10 @@ class Unit(BasicUnit):
         notesstr = ", ".join(self.notes)
         namestr = self.name
         portsstr = ",".join(self.openports)
+        if self.machine:
+            machinename = self.machine.name
+        else:
+            machinename = "PENDING"
 
         if self.leader:
             namestr += "*"
@@ -64,7 +71,7 @@ class Unit(BasicUnit):
                 namestr,
                 self.get_workloadstatus_color(),
                 self.get_jujustatus_color(),
-                self.machine.name,
+                machinename,
                 self.publicaddress,
                 portsstr,
                 self.message,
@@ -75,7 +82,7 @@ class Unit(BasicUnit):
                 namestr,
                 self.workloadstatus,
                 self.jujustatus,
-                self.machine.name,
+                machinename,
                 self.publicaddress,
                 portsstr,
                 self.message,
