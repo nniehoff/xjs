@@ -139,7 +139,8 @@ class Application:
             self.endpointbindings = appinfo["endpoint-bindings"]
         if "can-upgrade-to" in appinfo:
             match = re.match(r"\D+(\d+)$", appinfo["can-upgrade-to"])
-            self.charmlatestrev = int(match.group(1))
+            if match:
+                self.charmlatestrev = int(match.group(1))
             self.canupgradeto = appinfo["can-upgrade-to"]
 
         # Calculated Values

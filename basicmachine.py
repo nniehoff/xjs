@@ -61,7 +61,10 @@ class BasicMachine:
         else:
             self.jujustatus = info["agent-state"]
             self.jujuversion = info["agent-version"]
-        self.dnsname = info["dns-name"]
+        if "dns-name" in info:
+            self.dnsname = info["dns-name"]
+        else:
+            self.dnsname = "PENDING"
         if "ipaddresses" in info:
             self.ipaddresses = info["ip-addresses"]
         else:
@@ -69,7 +72,10 @@ class BasicMachine:
         self.instanceid = info["instance-id"]
         if "machine-status" in info:
             self.machinestatus = info["machine-status"]["current"]
-            self.machinemessage = info["machine-status"]["message"]
+            if "message" in info["machine-status"]:
+                self.machinemessage = info["machine-status"]["message"]
+            else:
+                self.machinemessage = ""
         else:
             self.machinestatus = "NA"
             self.machinemessage = ""
