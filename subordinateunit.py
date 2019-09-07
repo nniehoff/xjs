@@ -19,6 +19,8 @@ from basicunit import BasicUnit
 
 
 class SubordinateUnit(BasicUnit):
+    issubordinate = True
+
     def __init__(self, subunitname, subunitinfo, unit):
         """
         Create a SubordinateUnit object with basic information from a

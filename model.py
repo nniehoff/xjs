@@ -88,7 +88,7 @@ class Model:
             self.sla = "NA"
 
         # Required Dates
-        if "model-status" in modelinfo:
+        if "model-status" in modelinfo and "since" in modelinfo["model-status"]:
             if re.match(r".*Z$", modelinfo["model-status"]["since"]):
                 self.since = pendulum.from_format(
                     modelinfo["model-status"]["since"],
