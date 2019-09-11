@@ -88,4 +88,4 @@ Options:
 1.  Handle Dates in a common place
 1.  ~~Fix String Formatting~~
 1.  Work on tab completion more
-1.  Display relations
+1.  ~~Display relations~~

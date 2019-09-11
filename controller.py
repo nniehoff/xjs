@@ -99,9 +99,12 @@ class Controller:
                     url += "id=" + app.charmid + "&"
 
         response = None
-        response = requests.get(url)
-        if response.status_code == 200:
-            data = response.json()
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                data = response.json()
+        except:
+            print("WARNING: Unable to reach jujucharms.com")
 
         for modelname, model in self.models.items():
             for appname, app in model.applications.items():

@@ -23,6 +23,7 @@ from colors import Color
 from controller import Controller
 from machine import Machine
 from model import Model
+from relation import Relation
 from prettytable import PrettyTable
 import yaml
 
@@ -88,6 +89,16 @@ def load_status_file(inputfile):
         for unitname, unit in appinfo.units.items():
             for subunitname, subunit in unit.subordinates.items():
                 subunit.create_application_relation()
+
+    # Now we have all applications we need to collect all Relation info
+    for appname, appinfo in rawstatus[applicationkey].items():
+        if "relations" in appinfo:
+            for relationname, partnerapps in appinfo["relations"].items():
+                for parnerapp in partnerapps:
+                    relation = Relation(
+                        model, relationname, parnerapp, appname
+                    )
+                    model.add_relation(relation)
 
 
 def console_print_model_info(color=True):
@@ -160,7 +171,6 @@ def console_print_unit_info(color=True, hide_subordinate_units=False):
     #         subunitname,
     #         subunit,
     #     ) in application.subordinates.items():
-    #         print("Nick " + application.name + " " + subunit.name)
     #         units.append(subunit)
     if len(units) > 0:
         console_print_object(
@@ -228,6 +238,31 @@ def console_print_machine_info(color=True, include_containers=True):
     if len(machines) > 0:
         console_print_object(
             print_what=machines,
+            color=color,
+            include_controller_name=include_controller_name,
+            include_model_name=include_model_name,
+        )
+
+
+def console_print_relations(color=True):
+    """Filter and sort relation info to print in a table here"""
+    relations = []
+    include_controller_name = False
+    include_model_name = False
+
+    if len(controllers) > 1:
+        include_controller_name = True
+        include_model_name = True
+    for controllername, controller in controllers.items():
+        if len(controller.models) > 1:
+            include_model_name = True
+        for modelname, model in controller.models.items():
+            for relationname, relation in model.relations.items():
+                for singlerelation in model.relations[relationname]:
+                    relations.append(singlerelation)
+    if len(relations) > 0:
+        console_print_object(
+            print_what=relations,
             color=color,
             include_controller_name=include_controller_name,
             include_model_name=include_model_name,
@@ -451,6 +486,13 @@ def filter_results(
     help="Show unit information",
 )
 @click.option(
+    "--show-relations",
+    "-r",
+    default=False,
+    is_flag=True,
+    help="Show relation information",
+)
+@click.option(
     "--subordinate",
     default="",
     help="Show only the subordinate unit with the specified name",
@@ -478,6 +520,7 @@ def main(
     show_machines,
     show_net,
     show_model,
+    show_relations,
     include_containers,
     offline,
     no_color,
@@ -506,12 +549,14 @@ def main(
         and not show_net
         and not show_model
         and not include_containers
+        and not show_relations
     ):
         show_apps = True
         show_units = True
         show_machines = True
         show_net = True
         show_model = True
+        show_relations = True
         include_containers = True
 
     if (
@@ -549,6 +594,9 @@ def main(
         print("")
     if show_net:
         console_print_networkinterface_info(color, include_containers)
+        print("")
+    if show_relations:
+        console_print_relations(color)
         print("")
 
 
