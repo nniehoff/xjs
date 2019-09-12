@@ -18,7 +18,6 @@ import re
 from colors import Color
 from packaging import version
 import pendulum
-from relation import Relation
 
 
 class Model:
