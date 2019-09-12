@@ -39,6 +39,7 @@ setuptools.setup(
         "machine.py",
         "model.py",
         "networkinterface.py",
+        "relation.py",
         "subordinateunit.py",
         "unit.py",
     ],
