@@ -18,11 +18,12 @@ import re
 from colors import Color
 from packaging import version
 import pendulum
+from relation import Relation
 
 
 class Model:
     # TODO get latest juju version dynamically
-    latest_juju_version = version.parse("2.5.1")
+    latest_juju_version = version.parse("2.6.8")
     column_names = [
         "Model",
         "Controller",
@@ -44,6 +45,7 @@ class Model:
         # Default Values
         self.notes = []
         self.applications = {}
+        self.relations = {}
         self.machines = {}
         self.containers = {}
         self.meterstatus = ""
@@ -123,6 +125,29 @@ class Model:
     def add_container(self, container):
         """Add a container to this model"""
         self.containers[container.name] = container
+
+    def add_relation(self, relation):
+        """Add a relation if it doesn't already exist"""
+        if not relation.name in self.relations:
+            self.relations[relation.name] = []
+            self.relations[relation.name].append(relation)
+            return
+        else:
+            if not self.get_relation(relation.name, relation.application.name, 
+                relation.partner.name):
+                self.relations[relation.name].append(relation)
+
+    def get_relation(self, name, app_name, partner_name):
+        if name in self.relations:
+            for relation in self.relations[name]:
+                if ((relation.application.name == app_name
+                        and relation.partner.name == partner_name) or
+                        (relation.partner.name == app_name and 
+                        relation.application.name == partner_name)):
+                    return relation
+            return None
+        else:
+            return None
 
     def get_application(self, searchappname):
         """Get an Application by name"""

@@ -45,7 +45,6 @@ class Application:
         self.subordinates = {}
         self.version = ""
         self.message = ""
-        self.relations = {}
         self.endpointbindings = {}
         self.charmlatestrev = -1
 
@@ -133,8 +132,6 @@ class Application:
             self.message = appinfo[statuskey]["message"]
         if "version" in appinfo:
             self.version = appinfo["version"]
-        if "relations" in appinfo:
-            self.relations = appinfo["relations"]
         if "endpoint-bindings" in appinfo:
             self.endpointbindings = appinfo["endpoint-bindings"]
         if "can-upgrade-to" in appinfo:
