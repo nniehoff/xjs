@@ -64,6 +64,8 @@ class BasicUnit:
             self.publicaddress = info["public-address"]
         else:
             self.publicaddress = "PENDING"
+        if "message" in info[statuskey]:
+            self.notes.append(info[statuskey]["message"])
 
         # Required Dates
         if re.match(r".*Z$", info["workload-status"]["since"]):
