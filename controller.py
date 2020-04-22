@@ -40,15 +40,18 @@ class Controller:
         # Calculated Values
         if "timestamp" in controllerinfo:
             self.timestampprovided = True
+            if re.match(r"^\d\d:\d\d:\d\d", controllerinfo["timestamp"]):
+                controllerinfo["timestamp"] = "01 Jan 1970 " + controllerinfo["timestamp"]
             if re.match(r".*Z$", controllerinfo["timestamp"]):
+                controllerinfo["timestamp"] = re.sub(r"Z$", "", controllerinfo["timestamp"])
                 self.timestamp = pendulum.from_format(
-                    "01 Jan 1970 " + controllerinfo["timestamp"],
+                    controllerinfo["timestamp"],
                     "DD MMM YYYY HH:mm:ss",
                     tz="UTC",
                 )
             else:
                 self.timestamp = pendulum.from_format(
-                    "01 Jan 1970 " + controllerinfo["timestamp"],
+                    controllerinfo["timestamp"],
                     "DD MMM YYYY HH:mm:ss",
                 )
 

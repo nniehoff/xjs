@@ -85,6 +85,7 @@ class BasicMachine:
         # Required Dates
         if "juju-status" in info:
             if re.match(r".*Z$", info["juju-status"]["since"]):
+                info["juju-status"]["since"] = re.sub(r"Z$", "", info["juju-status"]["since"])
                 self.jujusince = pendulum.from_format(
                     info["juju-status"]["since"],
                     "DD MMM YYYY HH:mm:ss",
@@ -97,6 +98,7 @@ class BasicMachine:
             model.controller.update_timestamp(self.jujusince)
         if "machine-status" in info:
             if re.match(r".*Z$", info["machine-status"]["since"]):
+                info["machine-status"]["since"] = re.sub(r"Z$", "", info["machine-status"]["since"])
                 self.machinesince = pendulum.from_format(
                     info["machine-status"]["since"],
                     "DD MMM YYYY HH:mm:ss",
