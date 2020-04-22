@@ -49,6 +49,12 @@ class Controller:
                     "DD MMM YYYY HH:mm:ss",
                     tz="UTC",
                 )
+            elif re.match(r".*[+-]\d\d:\d\d$", controllerinfo["timestamp"]):
+                self.timestamp = pendulum.from_format(
+                    controllerinfo["timestamp"],
+                    "DD MMM YYYY HH:mm:ssZ",
+                    tz="UTC",
+                )
             else:
                 self.timestamp = pendulum.from_format(
                     controllerinfo["timestamp"],
