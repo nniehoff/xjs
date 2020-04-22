@@ -91,6 +91,7 @@ class Model:
         # Required Dates
         if "model-status" in modelinfo and "since" in modelinfo["model-status"]:
             if re.match(r".*Z$", modelinfo["model-status"]["since"]):
+                modelinfo["model-status"]["since"] = re.sub(r"Z$", "", modelinfo["model-status"]["since"])
                 self.since = pendulum.from_format(
                     modelinfo["model-status"]["since"],
                     "DD MMM YYYY HH:mm:ss",
@@ -126,15 +127,16 @@ class Model:
         self.containers[container.name] = container
 
     def add_relation(self, relation):
-        """Add a relation if it doesn't already exist"""
-        if not relation.name in self.relations:
-            self.relations[relation.name] = []
-            self.relations[relation.name].append(relation)
-            return
-        else:
-            if not self.get_relation(relation.name, relation.application.name, 
-                relation.partner.name):
+        if relation is not None:
+            """Add a relation if it doesn't already exist"""
+            if not relation.name in self.relations:
+                self.relations[relation.name] = []
                 self.relations[relation.name].append(relation)
+                return
+            else:
+                if not self.get_relation(relation.name, relation.application.name, 
+                    relation.partner.name):
+                    self.relations[relation.name].append(relation)
 
     def get_relation(self, name, app_name, partner_name):
         if name in self.relations:

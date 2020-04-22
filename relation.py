@@ -15,6 +15,8 @@
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from application import Application
+
 class Relation:
     """
     A Relation is a juju relation between 2 juju applications, juju status
@@ -33,7 +35,10 @@ class Relation:
         # Default Values
         self.name = name
         self.application = model.get_application(applicationname)
-        self.partner = model.get_application(partnername)
+        if model.get_application(partnername):
+            self.partner = model.get_application(partnername)
+        else:
+            self.partner = Application(partnername)
         # self.partner = self.application.model.get_application(partner)
         # if not self.partner:
         #     self.partner = partner

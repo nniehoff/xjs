@@ -31,10 +31,11 @@ class Application:
         "Rev",
         "OS",
         "Series",
+        "Message",
         "Notes",
     ]
 
-    def __init__(self, appname, appinfo, model):
+    def __init__(self, appname, appinfo="", model=""):
         """
         Create an Application object with basic information from an application
         object from a juju status output
@@ -47,11 +48,13 @@ class Application:
         self.message = ""
         self.endpointbindings = {}
         self.charmlatestrev = -1
+        self.exposed = ""
 
         # Required Variables
         self.name = appname
         self.model = model
-        self.charm = appinfo["charm"]
+        if "charm" in appinfo:
+            self.charm = appinfo["charm"]
         if "series" in appinfo:
             self.series = appinfo["series"]
         else:
@@ -82,7 +85,7 @@ class Application:
             isv1 = True
 
         # Handle v1 Charm info:
-        if isv1:
+        if isv1 and "charm" in appinfo:
             match = re.match(r"(.*):(.*)-(\d+)", self.charm)
             if match:
                 charmsource = match.group(1)
@@ -98,7 +101,8 @@ class Application:
                 if seriesmatch:
                     self.series = seriesmatch.group(2)
 
-        self.exposed = appinfo["exposed"]
+        if "exposed" in appinfo:
+            self.exposed = appinfo["exposed"]
 
         if "application-status" in appinfo:
             statuskey = "application-status"
@@ -116,6 +120,7 @@ class Application:
 
         if statuskey in appinfo and "since" in appinfo[statuskey]:
             if re.match(r".*Z$", appinfo[statuskey]["since"]):
+                appinfo[statuskey]["since"] = re.sub(r"Z$", "", appinfo[statuskey]["since"])
                 self.since = pendulum.from_format(
                     appinfo[statuskey]["since"],
                     "DD MMM YYYY HH:mm:ss",
@@ -128,33 +133,36 @@ class Application:
             model.controller.update_timestamp(self.since)
 
         # Optional Variables
-        if "message" in appinfo[statuskey]:
-            self.message = appinfo[statuskey]["message"]
-        if "version" in appinfo:
-            self.version = appinfo["version"]
-        if "endpoint-bindings" in appinfo:
-            self.endpointbindings = appinfo["endpoint-bindings"]
-        if "can-upgrade-to" in appinfo:
-            match = re.match(r"\D+(\d+)$", appinfo["can-upgrade-to"])
-            if match:
-                self.charmlatestrev = int(match.group(1))
-            self.canupgradeto = appinfo["can-upgrade-to"]
+        if statuskey in appinfo:
+            if "message" in appinfo[statuskey]:
+                self.message = appinfo[statuskey]["message"]
+            if "version" in appinfo:
+                self.version = appinfo["version"]
+            if "endpoint-bindings" in appinfo:
+                self.endpointbindings = appinfo["endpoint-bindings"]
+            if "can-upgrade-to" in appinfo:
+                match = re.match(r"\D+(\d+)$", appinfo["can-upgrade-to"])
+                if match:
+                    self.charmlatestrev = int(match.group(1))
+                self.canupgradeto = appinfo["can-upgrade-to"]
 
         # Calculated Values
         if self.exposed:
             self.notes.append("exposed")
+
         self.charmid = ""
-        match = re.match(r"(cs:~[^/]+)\/([^/]+/)*([^/]+)-\d+$", self.charm)
-        if match:
-            self.charmid = (
-                match.group(1) + "/" + self.series + "/" + match.group(3)
-            )
-        else:
-            match = re.match(r"cs:(.*)-\d+$", self.charm)
+        if "charm" in appinfo:
+            match = re.match(r"(cs:~[^/]+)\/([^/]+/)*([^/]+)-\d+$", self.charm)
             if match:
-                self.charmid = "cs:" + self.series + "/" + match.group(1)
-        if self.charmorigin != "jujucharms":
-            self.notes.append("Not from Charm Store")
+                self.charmid = (
+                    match.group(1) + "/" + self.series + "/" + match.group(3)
+                )
+            else:
+                match = re.match(r"cs:(.*)-\d+$", self.charm)
+                if match:
+                    self.charmid = "cs:" + self.series + "/" + match.group(1)
+            if self.charmorigin != "jujucharms":
+                self.notes.append("Not from Charm Store")
 
         # Handle Units
         if "units" in appinfo:
@@ -238,6 +246,7 @@ class Application:
                 self.get_charmrev_color(),
                 self.os,
                 self.series,
+                self.message,
                 ", ".join(self.notes),
             ]
         else:
@@ -251,6 +260,7 @@ class Application:
                 str(self.charmrev),
                 self.os,
                 self.series,
+                self.message,
                 ", ".join(self.notes),
             ]
         if include_model_name:
