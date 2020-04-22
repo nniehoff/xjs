@@ -10,7 +10,7 @@ description: |
 
 license: GPL-3.0
 
-confinement: classic
+confinement: strict
 
 parts:
   xjs:
