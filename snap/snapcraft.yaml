@@ -1,5 +1,5 @@
 name: xjs
-base: core18
+base: core20
 version: 'git'
 summary: A tool to parse juju status yaml/json
 architectures:
